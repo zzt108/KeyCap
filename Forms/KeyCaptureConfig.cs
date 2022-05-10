@@ -25,6 +25,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -300,7 +301,17 @@ namespace KeyCap.Forms
             listViewKeys.Items.Clear();
             try
             {
-                var listConfigs = ConfigFileManager.LoadFile(sFileName);
+                List<RemapEntry> listConfigs = null;
+                if (sFileName.EndsWith(ValidExtension.KFG))
+                {
+                    listConfigs = ConfigFileManager.LoadFile(sFileName);
+                }
+                else if (sFileName.EndsWith(ValidExtension.JSON))
+                {
+                    listConfigs = ConfigFileManager.LoadFileJson(sFileName);
+                }
+
+                Debug.Assert(listConfigs != null, nameof(listConfigs) + " != null");
                 listConfigs.ForEach(ioc =>
                 {
                     listViewKeys.Items.Add(new ListViewItem(new[]
