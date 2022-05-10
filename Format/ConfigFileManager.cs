@@ -41,17 +41,17 @@ namespace KeyCap.Format
         {
             public ExternalData(List<RemapEntry> listRemapEntries)
             {
-                this.ListJsonRemapEntries = new ArrayList();
-                foreach (var remapEntry in listRemapEntries)
-                {
-                    this.ListJsonRemapEntries.Add(remapEntry.SerializeToJson());
-                }
+                this.RemapEntries = listRemapEntries;
+                // foreach (var remapEntry in listRemapEntries)
+                // {
+                //     this.ListJsonRemapEntries.Add(remapEntry.SerializeToJson());
+                // }
             }
 
             public int FileDataPrefix = ConfigFileManager.FileDataPrefix;
 
             public int DataFormatVersion = ConfigFileManager.DataFormatVersion;
-            public ArrayList ListJsonRemapEntries;
+            public List<RemapEntry> RemapEntries;
         }
 
         private const int FileDataPrefix = 0x0E0CA000;

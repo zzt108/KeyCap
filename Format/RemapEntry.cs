@@ -35,8 +35,8 @@ namespace KeyCap.Format
     /// </summary>
     public class RemapEntry
     {
-        private InputConfig InputConfig { get; }
-        private List<OutputConfig> OutputConfigs { get; }
+        public InputConfig InputConfig { get; }
+        public List<OutputConfig> OutputConfigs { get; }
 
         public int OutputConfigCount => OutputConfigs?.Count ?? 0;
 
@@ -50,7 +50,7 @@ namespace KeyCap.Format
         public RemapEntry(InputConfig zInputConfig, OutputConfig zOutputConfig)
         {
             InputConfig = zInputConfig;
-            OutputConfigs = new List<OutputConfig>(new [] {zOutputConfig});
+            OutputConfigs = new List<OutputConfig>(new[] {zOutputConfig});
             m_nHash = CalculateHashCode(InputConfig);
         }
 
@@ -101,7 +101,7 @@ namespace KeyCap.Format
         {
             var zStream = new MemoryStream();
             InputConfig.SerializeToStream(zStream);
-            zStream.WriteByte((byte)OutputConfigs.Count);
+            zStream.WriteByte((byte) OutputConfigs.Count);
             // output count is only 1 byte, pad out to a 32bit int
             zStream.Write(new byte[3], 0, 3);
             OutputConfigs.ForEach(oc => oc.SerializeToStream(zStream));
@@ -112,6 +112,7 @@ namespace KeyCap.Format
         {
             return JsonConvert.SerializeObject(this);
         }
+
         /// <summary>
         /// Returns the input string representation
         /// </summary>

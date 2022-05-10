@@ -24,6 +24,7 @@
 
 using System.IO;
 using KeyCap.Util;
+using Newtonsoft.Json;
 
 namespace KeyCap.Format
 {
@@ -77,6 +78,11 @@ namespace KeyCap.Format
             zStream.WriteByte(0);
             zStream.WriteByte(0);
             StreamUtil.WriteIntToStream(zStream, Parameter);
+        }
+
+        public string SerializeToJson()
+        {
+            return JsonConvert.SerializeObject(this);
         }
     }
 }
