@@ -26,7 +26,7 @@ using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
 
-namespace Support.UI
+namespace KeyCap.Support.UI
 {
 	/// <summary>
 	/// This class allows for access to win32 functionality that is not directly supported in .NET (hiding/showing the console)
@@ -34,12 +34,12 @@ namespace Support.UI
 	public class Win32 
 	{
         // Win32 #defines
-        private const int SW_HIDE = 0;
-        private const int SW_RESTORE = 9;
-        private const int WM_SETREDRAW = 0xB;
-        private const int SW_SHOWNOACTIVATE = 4;
-        private const int SW_SHOW = 5;
-        private const uint SWP_NOACTIVATE = 0x0010;
+        private const int SwHide = 0;
+        private const int SwRestore = 9;
+        private const int WmSetredraw = 0xB;
+        private const int SwShownoactivate = 4;
+        private const int SwShow = 5;
+        private const uint SwpNoactivate = 0x0010;
 
 		private Win32(){}
 
@@ -64,8 +64,8 @@ namespace Support.UI
         static extern bool SetWindowPos(
              int hWnd,           // window handle
              int hWndInsertAfter,    // placement-order handle
-             int X,          // horizontal position
-             int Y,          // vertical position
+             int x,          // horizontal position
+             int y,          // vertical position
              int cx,         // width
              int cy,         // height
              uint uFlags);       // window positioning flags
@@ -87,11 +87,11 @@ namespace Support.UI
 
 			if(bShow)
 			{
-				ShowWindow(nHandle, SW_RESTORE);
+				ShowWindow(nHandle, SwRestore);
 			}
 			else
 			{
-				ShowWindow(nHandle, SW_HIDE);
+				ShowWindow(nHandle, SwHide);
 			}
 		}
 
@@ -107,44 +107,44 @@ namespace Support.UI
             ShowWindow(sConsoleTitle, bShow);
 		}
 
-        public static void SetRedraw(IntPtr HANDLE, bool bRedraw)
+        public static void SetRedraw(IntPtr handle, bool bRedraw)
         {
-            SendMessage(HANDLE, WM_SETREDRAW, (IntPtr)(bRedraw ? 1 : 0), IntPtr.Zero);
+            SendMessage(handle, WmSetredraw, (IntPtr)(bRedraw ? 1 : 0), IntPtr.Zero);
         }
 
         public static void ShowTopmost(IntPtr nFormHandle)
         {
-            ShowWindow(nFormHandle.ToInt32(), SW_SHOW);
+            ShowWindow(nFormHandle.ToInt32(), SwShow);
             SetForegroundWindow(nFormHandle.ToInt32());
         }
 
         public static void ShowInactiveTopmost(IntPtr nFormHandle, int nLeft, int nTop, int nWidth, int nHeight)
         {
-            ShowWindow(nFormHandle.ToInt32(), SW_SHOWNOACTIVATE);
-            SetWindowPos(nFormHandle.ToInt32(), -1, nLeft, nTop, nWidth, nHeight, SWP_NOACTIVATE);
+            ShowWindow(nFormHandle.ToInt32(), SwShownoactivate);
+            SetWindowPos(nFormHandle.ToInt32(), -1, nLeft, nTop, nWidth, nHeight, SwpNoactivate);
         }
 
 
         #region RichTextBox
 
         // these are specific to rich text boxes
-        private const int EM_GETSCROLLPOS = 0x0400 + 221;
-        private const int EM_SETSCROLLPOS = 0x0400 + 222;
+        private const int EmGetscrollpos = 0x0400 + 221;
+        private const int EmSetscrollpos = 0x0400 + 222;
 
         // it's this or using actual pointers and forcing unsafe code
         [DllImport("user32.dll")]
         private extern static IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wp, ref Point lp);
 
-        public static Point GetRichTextScrollPosition(IntPtr HANDLE)
+        public static Point GetRichTextScrollPosition(IntPtr handle)
         {
             var pLocation = new Point();
-            SendMessage(HANDLE, EM_GETSCROLLPOS, (IntPtr)0, ref pLocation);
+            SendMessage(handle, EmGetscrollpos, (IntPtr)0, ref pLocation);
             return pLocation;
         }
 
-        public static void SetRichTextScrollPosition(IntPtr HANDLE, Point pLocation)
+        public static void SetRichTextScrollPosition(IntPtr handle, Point pLocation)
         {
-            SendMessage(HANDLE, EM_SETSCROLLPOS, (IntPtr)0, ref pLocation);
+            SendMessage(handle, EmSetscrollpos, (IntPtr)0, ref pLocation);
         }
 
         #endregion

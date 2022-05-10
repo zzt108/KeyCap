@@ -26,15 +26,16 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using KeyCap.Format;
 using KeyCap.Settings;
+using KeyCap.Support.IO;
+using KeyCap.Support.UI;
 using KeyCap.Util;
 using KeyCap.Wrapper;
-using Support.IO;
-using Support.UI;
 
 namespace KeyCap.Forms
 {
@@ -64,9 +65,9 @@ namespace KeyCap.Forms
         public KeyCaptureConfig(IReadOnlyList<string> args)
         {
             InitializeComponent();
-            m_sBaseTitle = Application.ProductName + " Configuration " + Application.ProductVersion;
-            m_sFileOpenFilter = Application.ProductName + " Config files (*.kfg)|*.kfg|All files (*.*)|*.*";
-            Text = m_sBaseTitle;
+            SBaseTitle = Application.ProductName + " Configuration " + Application.ProductVersion;
+            SFileOpenFilter = Application.ProductName + " Config files (*.kfg)|*.kfg|All files (*.*)|*.*";
+            Text = SBaseTitle;
             
             m_zInstanceState = new KeyCapInstanceState(args);
 
@@ -96,7 +97,7 @@ namespace KeyCap.Forms
             Icon = notifyIcon.Icon;
 
             // populate the previously loaded configurations
-            var arrayFiles = m_zIniManager.GetValue(IniSettings.PreviousFiles).Split(new char[] { KeyCapConstants.CharFileSplit }, StringSplitOptions.RemoveEmptyEntries);
+            var arrayFiles = m_zIniManager.GetValue(IniSettings.PreviousFiles).Split(new[] { KeyCapConstants.CharFileSplit }, StringSplitOptions.RemoveEmptyEntries);
             if (0 < arrayFiles.Length)
             {
                 foreach (var sFile in arrayFiles)
@@ -106,7 +107,7 @@ namespace KeyCap.Forms
             }
 
             // initialize capture from command line specified file
-            if (0 != m_sLoadedFile.Length && m_zInstanceState.AutoStart)
+            if (0 != SLoadedFile.Length && m_zInstanceState.AutoStart)
             {
                 btnStart_Click(sender, new EventArgs());
                 new Thread(MinimizeThread) { Name = "MinimizeThread" }.Start();
@@ -139,15 +140,15 @@ namespace KeyCap.Forms
 
         private void btnAddOutputString_Click(object sender, EventArgs e)
         {
-            const string MACRO_STRING_KEY = "macro_string_key";
+            const string macroStringKey = "macro_string_key";
             var zQuery = new QueryPanelDialog("Enter String Macro", 400, false);
             zQuery.SetIcon(this.Icon);
-            zQuery.AddTextBox("String", string.Empty, false, MACRO_STRING_KEY);
+            zQuery.AddTextBox("String", string.Empty, false, macroStringKey);
             if (DialogResult.OK != zQuery.ShowDialog(this))
             {
                 return;
             }
-            var sMacro = zQuery.GetString(MACRO_STRING_KEY);
+            var sMacro = zQuery.GetString(macroStringKey);
             if (string.IsNullOrWhiteSpace(sMacro))
             {
                 MessageBox.Show(this, "Please specify a string of output characters.", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -233,7 +234,7 @@ namespace KeyCap.Forms
             checkOutputDelay.Checked = false;
         }
 
-        private void UpdateTextBox<T>(TextBox txtBox, KeyEventArgs e, T config) where T : BaseIOConfig
+        private void UpdateTextBox<T>(TextBox txtBox, KeyEventArgs e, T config) where T : BaseIoConfig
         {
             txtBox.Text = config.GetDescription();
             txtBox.Tag = config;
@@ -254,16 +255,13 @@ namespace KeyCap.Forms
 
         #region AbstractDirtyForm overrides
 
-        protected override bool SaveFormData(string sFileName)
+        protected override bool SaveFormData(string strFileName)
         {
             var listConfigs = new List<RemapEntry>(listViewKeys.Items.Count);
-            foreach (ListViewItem zItem in listViewKeys.Items)
-            {
-                listConfigs.Add((RemapEntry) zItem.Tag);
-            }
-            m_zConfigFileManager.SaveFile(listConfigs, sFileName);
+            listConfigs.AddRange(from ListViewItem item in listViewKeys.Items select (RemapEntry) item.Tag);
+            m_zConfigFileManager.SaveFileJson(listConfigs, strFileName);
             // on save the project list should be updated
-            UpdateProjectsList(sFileName);
+            UpdateProjectsList(strFileName);
             return true;
         }
 
@@ -277,7 +275,7 @@ namespace KeyCap.Forms
                 var listConfigs = m_zConfigFileManager.LoadFile(sFileName);
                 listConfigs.ForEach(ioc =>
                 {
-                    listViewKeys.Items.Add(new ListViewItem(new string[]
+                    listViewKeys.Items.Add(new ListViewItem(new[]
                     {
                         ioc.GetInputString(),
                         ioc.GetOutputString()
@@ -411,7 +409,7 @@ namespace KeyCap.Forms
 
         private void AddRemapEntryToListView(RemapEntry zRemapEntry, bool bMarkDirty)
         {
-            var zItem = new ListViewItem(new string[]
+            var zItem = new ListViewItem(new[]
             {
                 zRemapEntry.GetInputString(),
                 zRemapEntry.GetOutputString()
@@ -478,7 +476,7 @@ namespace KeyCap.Forms
                 if (!Dirty)
                 {
                     ConfigureControls(true);
-                    var eReturn = KeyCaptureLib.LoadFileAndCapture(m_sLoadedFile);
+                    var eReturn = KeyCaptureLib.LoadFileAndCapture(SLoadedFile);
                     switch (eReturn)
                     {
                         case CaptureMessage.HookCreationSuccess:

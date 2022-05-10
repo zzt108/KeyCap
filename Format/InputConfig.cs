@@ -30,7 +30,7 @@ namespace KeyCap.Format
     /// <summary>
     /// Object for storing the definition of an input action
     /// </summary>
-    public class InputConfig : BaseIOConfig
+    public class InputConfig : BaseIoConfig
     {
         /// <summary>
         /// Copy constructor
@@ -61,10 +61,9 @@ namespace KeyCap.Format
 
             if (null != eKeyArgs)
             {
-                Flags |= (int)(
-                    (eKeyArgs.Shift ? (int)InputFlag.Shift : (byte)0) |
-                    (eKeyArgs.Alt ? (int)InputFlag.Alt : (byte)0) |
-                    (eKeyArgs.Control ? (int)InputFlag.Control : (byte)0));
+                Flags |= (eKeyArgs.Shift ? (int)InputFlag.Shift : 0) |
+                         (eKeyArgs.Alt ? (int)InputFlag.Alt : 0) |
+                         (eKeyArgs.Control ? (int)InputFlag.Control : 0);
             }
         }
 

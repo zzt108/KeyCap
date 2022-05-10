@@ -37,10 +37,7 @@ namespace KeyCap.Format
         private InputConfig InputConfig { get; set; }
         private List<OutputConfig> OutputConfigs { get; set; }
 
-        public int OutputConfigCount
-        {
-            get { return OutputConfigs == null ? 0 : OutputConfigs.Count; }
-        }
+        public int OutputConfigCount => OutputConfigs?.Count ?? 0;
 
         private readonly int m_nHash;
 
@@ -60,7 +57,7 @@ namespace KeyCap.Format
         /// Constructor based on an input stream
         /// </summary>
         /// <param name="zFileStream">The file stream to read the config from</param>
-        public RemapEntry(FileStream zFileStream)
+        public RemapEntry(Stream zFileStream)
         {
             InputConfig = new InputConfig(zFileStream);
             m_nHash = CalculateHashCode(InputConfig);
@@ -78,7 +75,7 @@ namespace KeyCap.Format
             try
             {
                 OutputConfigs = new List<OutputConfig>(nOutputConfigs);
-                for (int nIdx = 0; nIdx < nOutputConfigs; nIdx++)
+                for (var nIdx = 0; nIdx < nOutputConfigs; nIdx++)
                 {
                     OutputConfigs.Add(new OutputConfig(zFileStream));
                 }
@@ -94,10 +91,9 @@ namespace KeyCap.Format
         /// </summary>
         /// <param name="zOutputConfig"></param>
         /// <returns></returns>
-        public bool AppendOutputConfig(OutputConfig zOutputConfig)
+        public void AppendOutputConfig(OutputConfig zOutputConfig)
         {
             OutputConfigs.Add(zOutputConfig);
-            return true;
         }
 
         public byte[] SerializeToBytes()
@@ -146,9 +142,9 @@ namespace KeyCap.Format
             return m_nHash;
         }
 
-        protected static int CalculateHashCode(InputConfig zInputConfig)
+        private static int CalculateHashCode(BaseIoConfig zInputConfig)
         {
-            return (int)(zInputConfig.Flags & 0xFF) + (int)((zInputConfig.VirtualKey & 0xFF) << 8);
+            return (zInputConfig.Flags & 0xFF) + ((zInputConfig.VirtualKey & 0xFF) << 8);
         }
     }
 }

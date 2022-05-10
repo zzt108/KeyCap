@@ -26,7 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 
-namespace Support.UI
+namespace KeyCap.Support.UI
 {
 
 	public static class ListViewAssist
@@ -67,14 +67,14 @@ namespace Support.UI
             // moving down the list view (1)
             if (0 < nAmount)
             {
-                int nCurrentListViewIdx = lv.Items.Count - 1;
+                var nCurrentListViewIdx = lv.Items.Count - 1;
                 // find the first index to actually move (otherwise things will move above/below where they should go)
-                for (int nIdx = listSorted.Count - 1; nIdx > -1; nIdx--)
+                for (var nIdx = listSorted.Count - 1; nIdx > -1; nIdx--)
                 {
                     if (listSorted[nIdx].Index != nCurrentListViewIdx)
                     {
                         // found the start index, perform the actual moves
-                        for (int nSortedIdx = nIdx; nSortedIdx > -1; nSortedIdx--)
+                        for (var nSortedIdx = nIdx; nSortedIdx > -1; nSortedIdx--)
                         {
                             lvi = listSorted[nSortedIdx];
                             nPrevIdx = lvi.Index;
@@ -90,14 +90,14 @@ namespace Support.UI
             // moving up the list view (-1)
             else
             {
-                int nCurrentListViewIdx = 0;
+                var nCurrentListViewIdx = 0;
                 // find the first index to actually move (otherwise things will move above/below where they should go)
-                for (int nIdx = 0; nIdx < listSorted.Count; nIdx++)
+                for (var nIdx = 0; nIdx < listSorted.Count; nIdx++)
                 {
                     if (listSorted[nIdx].Index != nCurrentListViewIdx)
                     {
                         // found the start index, perform the actual moves
-                        for (int nSortedIdx = nIdx; nSortedIdx < listSorted.Count; nSortedIdx++)
+                        for (var nSortedIdx = nIdx; nSortedIdx < listSorted.Count; nSortedIdx++)
                         {
                             lvi = listSorted[nSortedIdx];
                             nPrevIdx = lvi.Index;
@@ -148,18 +148,18 @@ namespace Support.UI
             lvInput.SuspendLayout();
 
             var arrayPercents = new float[lvInput.Columns.Count];
-            int nColumnsWidth = 0;
-            for (int nIdx = 0; nIdx < lvInput.Columns.Count; nIdx++)
+            var nColumnsWidth = 0;
+            for (var nIdx = 0; nIdx < lvInput.Columns.Count; nIdx++)
             {
                 nColumnsWidth += lvInput.Columns[nIdx].Width;
             }
-            for (int nIdx = 0; nIdx < lvInput.Columns.Count; nIdx++)
+            for (var nIdx = 0; nIdx < lvInput.Columns.Count; nIdx++)
             {
-                arrayPercents[nIdx] = (float)lvInput.Columns[nIdx].Width / (float)nColumnsWidth;
+                arrayPercents[nIdx] = lvInput.Columns[nIdx].Width / (float)nColumnsWidth;
             }
-            for (int nIdx = 0; nIdx < lvInput.Columns.Count; nIdx++)
+            for (var nIdx = 0; nIdx < lvInput.Columns.Count; nIdx++)
             {
-                lvInput.Columns[nIdx].Width = (int)(arrayPercents[nIdx] * (float)lvInput.ClientSize.Width);
+                lvInput.Columns[nIdx].Width = (int)(arrayPercents[nIdx] * lvInput.ClientSize.Width);
             }
             lvInput.ResumeLayout();
             lvInput.Visible = true;

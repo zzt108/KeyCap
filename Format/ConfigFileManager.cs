@@ -25,15 +25,31 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
-using Support.UI;
+using KeyCap.Support.UI;
+using KeyCap.Util;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace KeyCap.Format
 {
     public class ConfigFileManager
     {
-        private static readonly int FILE_DATA_PREFIX = (int)0x0E0CA000;
-        private static readonly int DATA_FORMAT_VERSION = (int)0x1;
+        private class ExternalData
+        {
+            public ExternalData(List<RemapEntry> listRemapEntries)
+            {
+                this.ListRemapEntries = listRemapEntries.ToArray();
+            }
+            
+            public int FileDataPrefix = ConfigFileManager.FileDataPrefix;
+            public int DataFormatVersion = ConfigFileManager.DataFormatVersion;
+            public RemapEntry[] ListRemapEntries;
+        }
+
+        private const int FileDataPrefix = 0x0E0CA000;
+        private const int DataFormatVersion = 0x1;
 
         /// <summary>
         /// Saves the remap entries to a versioned file format
@@ -42,15 +58,35 @@ namespace KeyCap.Format
         /// <param name="sFileName">The name of the file to save to</param>
         public void SaveFile(List<RemapEntry> listRemapEntries, string sFileName)
         {
-            var zFileStream = new FileStream(sFileName, FileMode.Create, FileAccess.Write, FileShare.None);
-            StreamUtil.WriteIntToStream(zFileStream, FILE_DATA_PREFIX);
-            StreamUtil.WriteIntToStream(zFileStream, DATA_FORMAT_VERSION);
-            listRemapEntries.ForEach(zEntry =>
+            using (var fileStream = new FileStream(sFileName, FileMode.Create, FileAccess.Write, FileShare.None))
             {
-                var arrayBytes = zEntry.SerializeToBytes();
-                zFileStream.Write(arrayBytes, 0, arrayBytes.Length);
-            });
-            zFileStream.Close();
+                StreamUtil.WriteIntToStream(fileStream, FileDataPrefix);
+                StreamUtil.WriteIntToStream(fileStream, DataFormatVersion);
+                listRemapEntries.ForEach(zEntry =>
+                {
+                    var arrayBytes = zEntry.SerializeToBytes();
+                    fileStream.Write(arrayBytes, 0, arrayBytes.Length);
+                });
+                fileStream.Close();
+            }
+        }
+
+        /// <summary>
+        /// Saves the remap entries to a versioned JSON file
+        /// </summary>
+        /// <param name="listRemapEntries">The entries to persist</param>
+        /// <param name="strFileName">The name of the file to save to</param>
+        public void SaveFileJson(List<RemapEntry> listRemapEntries, string strFileName)
+        {
+            var serializer = new JsonSerializer();
+            serializer.Converters.Add(new JavaScriptDateTimeConverter());
+            serializer.NullValueHandling = NullValueHandling.Ignore;
+
+            using (var sw = new StreamWriter(strFileName))
+            using (JsonWriter writer = new JsonTextWriter(sw))
+            {
+                serializer.Serialize(writer, new ExternalData(listRemapEntries));
+            }
         }
 
         /// <summary>
@@ -66,13 +102,58 @@ namespace KeyCap.Format
             {
                 zFileStream = new FileStream(sFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
                 var nPrefix = StreamUtil.ReadIntFromStream(zFileStream);
-                if (nPrefix != FILE_DATA_PREFIX)
+                if (nPrefix != FileDataPrefix)
                 {
-                    throw new Exception("{} does not have the correct data prefix. This is likely an unsupported format.".FormatString(sFileName));
+                    throw new Exception(
+                        "{} does not have the correct data prefix. This is likely an unsupported format.".FormatString(
+                            sFileName));
                 }
 
                 var nDataFormatVersion = StreamUtil.ReadIntFromStream(zFileStream);
-                if (nDataFormatVersion != DATA_FORMAT_VERSION)
+                if (nDataFormatVersion != DataFormatVersion)
+                {
+                    throw new Exception("{} indicates an unsupported data format.".FormatString(sFileName));
+                }
+
+                while (zFileStream.Position < zFileStream.Length)
+                {
+                    listConfigs.Add(new RemapEntry(zFileStream));
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+            finally
+            {
+                zFileStream?.Close();
+            }
+
+            return listConfigs;
+        }
+
+        /// <summary>
+        /// Loads the remap entries from the specified file
+        /// </summary>
+        /// <param name="sFileName"></param>
+        /// <returns></returns>
+        public List<RemapEntry> LoadFileJson(string sFileName)
+        {
+            FileStream zFileStream = null;
+            var listConfigs = new List<RemapEntry>();
+            try
+            {
+                zFileStream = new FileStream(sFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+                var nPrefix = StreamUtil.ReadIntFromStream(zFileStream);
+                if (nPrefix != FileDataPrefix)
+                {
+                    throw new Exception(
+                        "{} does not have the correct data prefix. This is likely an unsupported format.".FormatString(
+                            sFileName));
+                }
+
+                var nDataFormatVersion = StreamUtil.ReadIntFromStream(zFileStream);
+                if (nDataFormatVersion != DataFormatVersion)
                 {
                     throw new Exception("{} indicates an unsupported data format.".FormatString(sFileName));
                 }

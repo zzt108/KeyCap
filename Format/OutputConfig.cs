@@ -25,14 +25,14 @@
 using System;
 using System.IO;
 using System.Windows.Forms;
-using Support.UI;
+using KeyCap.Support.UI;
 
 namespace KeyCap.Format
 {
     /// <summary>
     /// Object for storing the definition of an input action
     /// </summary>
-    public class OutputConfig : BaseIOConfig
+    public class OutputConfig : BaseIoConfig
     {
         /// <summary>
         /// Copy constructor

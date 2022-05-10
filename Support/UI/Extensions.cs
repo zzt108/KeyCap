@@ -25,7 +25,7 @@
 using System;
 using System.Windows.Forms;
 
-namespace Support.UI
+namespace KeyCap.Support.UI
 {
     public static class ControlExtensions
     {

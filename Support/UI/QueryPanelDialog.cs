@@ -27,7 +27,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace Support.UI
+namespace KeyCap.Support.UI
 {
 
     public class QueryPanelDialog : QueryPanel
@@ -48,7 +48,7 @@ namespace Support.UI
             : base(null, bTabbed)
 		{
             InitForm(sTitle, nWidth, null, null);
-            X_LABEL_SIZE = (int)((float)m_zPanel.Width * 0.25);
+            XLabelSize = (int)((float)ZPanel.Width * 0.25);
 		}
 
 		/// <summary>
@@ -62,9 +62,9 @@ namespace Support.UI
             : base(null, nLabelWidth, bTabbed)
 		{
             InitForm(sTitle, nWidth, null, null);
-            if (0 < nLabelWidth && nLabelWidth < m_zPanel.Width)
+            if (0 < nLabelWidth && nLabelWidth < ZPanel.Width)
             {
-                X_LABEL_SIZE = nLabelWidth;
+                XLabelSize = nLabelWidth;
             }
 		}
 
@@ -80,9 +80,9 @@ namespace Support.UI
             : base(null, nLabelWidth, bTabbed)
         {
             InitForm(sTitle, nWidth, arrayButtons, null);
-            if (0 < nLabelWidth && nLabelWidth < m_zPanel.Width)
+            if (0 < nLabelWidth && nLabelWidth < ZPanel.Width)
             {
-                X_LABEL_SIZE = nLabelWidth;
+                XLabelSize = nLabelWidth;
             }
         }
 
@@ -99,9 +99,9 @@ namespace Support.UI
             : base(null, nLabelWidth, bTabbed)
         {
             InitForm(sTitle, nWidth, arrayButtons, arrayHandlers);
-            if (0 < nLabelWidth && nLabelWidth < m_zPanel.Width)
+            if (0 < nLabelWidth && nLabelWidth < ZPanel.Width)
             {
-                X_LABEL_SIZE = nLabelWidth;
+                XLabelSize = nLabelWidth;
             }
         }
 
@@ -145,7 +145,7 @@ namespace Support.UI
             else
             {
                 Button btnPrevious = null;
-                for (int nIdx = arrayButtons.Length - 1; nIdx > -1; nIdx--)
+                for (var nIdx = arrayButtons.Length - 1; nIdx > -1; nIdx--)
                 {
                     btnDefault = new Button();
                     var bHandlerSet = false;
@@ -182,20 +182,20 @@ namespace Support.UI
 			m_zForm.Load += QueryDialog_Load;
 
             // setup the panel to contain the controls
-            m_zPanel.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
+            ZPanel.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
 		    if (null != btnDefault)
 		    {
-		        m_zPanel.Size = new Size(m_zForm.ClientSize.Width,
+		        ZPanel.Size = new Size(m_zForm.ClientSize.Width,
 		            m_zForm.ClientSize.Height - (btnDefault.Size.Height + (2*Y_CONTROL_BUFFER)));
 		    }
-		    m_zPanel.AutoScroll = true;
-            m_zPanel.Resize += m_zPanel_Resize;
-            m_zForm.Controls.Add(m_zPanel);
+		    ZPanel.AutoScroll = true;
+            ZPanel.Resize += m_zPanel_Resize;
+            m_zForm.Controls.Add(ZPanel);
 		}
 
         void m_zPanel_Resize(object sender, EventArgs e)
         {
-            SetupScrollState(m_zPanel);
+            SetupScrollState(ZPanel);
         }
 
         /// <summary>
@@ -313,9 +313,9 @@ namespace Support.UI
 		/// <param name="e"></param>
 		private void QueryDialog_Load(object sender, EventArgs e)
 		{
-            if (null == m_zTabControl)
+            if (null == ZTabControl)
             {
-                int nHeight = GetYPosition() + m_nButtonHeight + (Y_CONTROL_BUFFER * 2);
+                var nHeight = GetYPosition() + NButtonHeight + (Y_CONTROL_BUFFER * 2);
                 if (m_nMaxDesiredHeight > 0)
                 {
                     if (nHeight > m_nMaxDesiredHeight)
@@ -329,7 +329,7 @@ namespace Support.UI
             else
             {
                 var nLargestHeight = -1;
-                foreach(var zPage in m_zTabControl.TabPages.OfType<TabPage>())
+                foreach(var zPage in ZTabControl.TabPages.OfType<TabPage>())
                 {
                     if(nLargestHeight < (int)zPage.Tag)
                     {
@@ -350,9 +350,9 @@ namespace Support.UI
             // add the panel controls after the client size has been set (adding them before displayed an odd issue with control anchor/size)
 		    FinalizeControls();
 
-            if (0 < m_zPanel.Controls.Count)
+            if (0 < ZPanel.Controls.Count)
             {
-                m_zPanel.SelectNextControl(m_zPanel.Controls[m_zPanel.Controls.Count - 1], true, true, true, true);
+                ZPanel.SelectNextControl(ZPanel.Controls[ZPanel.Controls.Count - 1], true, true, true, true);
             }
 		}
 

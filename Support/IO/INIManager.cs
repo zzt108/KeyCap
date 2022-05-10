@@ -29,13 +29,13 @@ using System.Globalization;
 using System.IO;
 using System.Windows.Forms;
 
-namespace Support.IO
+namespace KeyCap.Support.IO
 {
 
     public class IniManager
     {
-        private const char CHAR_SPLITTER = '=';
-        private const string CONTROL_FORMAT = "{0}_{1}";
+        private const char CharSplitter = '=';
+        private const string ControlFormat = "{0}_{1}";
 
         private Dictionary<string, string> m_dictionaryItems = new Dictionary<string, string>();
         private bool m_bReadOnly;
@@ -54,12 +54,12 @@ namespace Support.IO
         /// <summary>
         /// Sets the IniManager to flush to the ini file every time a value is set. (Automatic call to FlushIniSettings)
         /// </summary>
-        public bool AutoFlush { get; set; }
+        private bool AutoFlush { get; set; }
 
         /// <summary>
         /// The ini file path
         /// </summary>
-        public string Filename { get; private set; }
+        private string Filename { get; set; }
 
         /// <summary>
         /// Creates a new IniManager 
@@ -110,7 +110,7 @@ namespace Support.IO
 
             m_bReadOnly = bReadOnly;
             m_bMatchCase = bMatchCase;
-            m_dictionaryItems = GetIniTable(Filename, CHAR_SPLITTER);
+            m_dictionaryItems = GetIniTable(Filename, CharSplitter);
         }
 
         /// <summary>
@@ -121,7 +121,7 @@ namespace Support.IO
 		/// <returns>The value of the string or default value</returns>
         public string GetValue(string sItem, string sDefault="")
         {
-            string sCheck = m_bMatchCase ? sItem : sItem.ToLower();
+            var sCheck = m_bMatchCase ? sItem : sItem.ToLower();
 
             string sValue;
             if (m_dictionaryItems.TryGetValue(sCheck, out sValue))
@@ -153,7 +153,7 @@ namespace Support.IO
             if(m_bReadOnly)
                 throw new Exception("Attempting to write to a read-only IniManager! " + Filename);
 
-            string sCheck = m_bMatchCase ? sItem : sItem.ToLower();
+            var sCheck = m_bMatchCase ? sItem : sItem.ToLower();
 
             if (m_dictionaryItems.ContainsKey(sCheck))
                 m_dictionaryItems[sCheck] = sValue;
@@ -179,27 +179,19 @@ namespace Support.IO
         /// </summary>
         public void FlushIniSettings()
         {
-            string sDirectory = Path.GetDirectoryName(Filename);
+            var sDirectory = Path.GetDirectoryName(Filename);
             if (sDirectory != null && !Directory.Exists(sDirectory))
             {
                 Directory.CreateDirectory(sDirectory);
             }
 
-            try
-            {
-                var zWriter = new StreamWriter(Filename, false);
+            var zWriter = new StreamWriter(Filename, false);
 
-                foreach (var sKey in m_dictionaryItems.Keys)
-                {
-                    zWriter.WriteLine(sKey + CHAR_SPLITTER + m_dictionaryItems[sKey]);
-                }
-                zWriter.Close();
-            }
-#warning do nothing?
-            catch (Exception)
+            foreach (var sKey in m_dictionaryItems.Keys)
             {
-                throw;
+                zWriter.WriteLine(sKey + CharSplitter + m_dictionaryItems[sKey]);
             }
+            zWriter.Close();
         }
 
         /// <summary>
@@ -209,8 +201,8 @@ namespace Support.IO
         public string[] GetKeys()
         {
             var arrayKeys = new string[m_dictionaryItems.Keys.Count];
-            int nIdx = 0;
-            foreach (string sKey in m_dictionaryItems.Keys)
+            var nIdx = 0;
+            foreach (var sKey in m_dictionaryItems.Keys)
             {
                 arrayKeys[nIdx] = sKey;
                 nIdx++;
@@ -234,7 +226,7 @@ namespace Support.IO
                     var arrayLines = File.ReadAllLines(sFile);
                     foreach (var sLine in arrayLines)
                     {
-                        var arraySplit = sLine.Split(new char[] {cSplitItem}, 2);
+                        var arraySplit = sLine.Split(new[] {cSplitItem}, 2);
                         var sItem = m_bMatchCase ? arraySplit[0] : arraySplit[0].ToLower();
                         if (!dictionaryItems.ContainsKey(sItem))
                             dictionaryItems.Add(sItem, arraySplit[1]);
@@ -244,7 +236,9 @@ namespace Support.IO
 #warning do nothing??
             catch (Exception)
             {
+                // ignored
             }
+
             return dictionaryItems;
         }
 
@@ -273,11 +267,11 @@ namespace Support.IO
         /// <param name="sInput">The string representation of the form state</param>
         public static void RestoreState(Form zForm, string sInput)
         {
-            string[] arraySplit = sInput.Split(new char[] { ';' });
+            var arraySplit = sInput.Split(new[] { ';' });
             var nValues = new int[(int)ERestoreStateValue.End];
             if ((int)ERestoreStateValue.End == arraySplit.Length)
             {
-                for (int nIdx = 0; nIdx < arraySplit.Length; nIdx++)
+                for (var nIdx = 0; nIdx < arraySplit.Length; nIdx++)
                 {
                     nValues[nIdx] = int.Parse(arraySplit[nIdx]);
                 }
@@ -295,7 +289,7 @@ namespace Support.IO
         {
             foreach (Control zControl in zForm.Controls)
             {
-                string sKeyName = string.Format(CONTROL_FORMAT, zForm.Name, zControl.Name);
+                var sKeyName = string.Format(ControlFormat, zForm.Name, zControl.Name);
                 if (zControl is TextBox)
                      SetValue(sKeyName, ((TextBox)zControl).Text);
                 else if (zControl is NumericUpDown)
@@ -314,7 +308,7 @@ namespace Support.IO
         {
             foreach (Control zControl in zForm.Controls)
             {
-                string sKeyName = string.Format(CONTROL_FORMAT, zForm.Name, zControl.Name);
+                var sKeyName = string.Format(ControlFormat, zForm.Name, zControl.Name);
                 if (zControl is TextBox)
                 {
                     ((TextBox) zControl).Text = GetValue(sKeyName, string.Empty);

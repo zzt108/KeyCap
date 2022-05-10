@@ -29,7 +29,7 @@ using System.Globalization;
 using System.Reflection;
 using System.Windows.Forms;
 
-namespace Support.UI
+namespace KeyCap.Support.UI
 {
 	public class QueryPanel
 	{
@@ -41,17 +41,17 @@ namespace Support.UI
         protected const int Y_CONTROL_HEIGHT = 20; // default textbox height
         protected const int X_NUMERIC_WIDTH = 100;
         
-        protected int X_LABEL_SIZE = 80; // this one varies based on the overall width
+        protected int XLabelSize = 80; // this one varies based on the overall width
         private readonly Dictionary<object, QueryItem> m_dictionaryItems;
         private Control m_zCurrentLayoutControl; // the current panel / tab page to add controls to
         private bool m_bTabbed;
         private int m_nTabIndex; // the tab index value of a control
 
-	    protected Dictionary<Control, List<Control>> m_dictionaryLayoutControlControls = new Dictionary<Control, List<Control>>();
+	    protected Dictionary<Control, List<Control>> DictionaryLayoutControlControls = new Dictionary<Control, List<Control>>();
 
-        protected int m_nButtonHeight;
-        protected TabControl m_zTabControl;
-        protected Panel m_zPanel;
+        protected int NButtonHeight;
+        protected TabControl ZTabControl;
+        protected Panel ZPanel;
 
 		public enum ControlType
 		{
@@ -78,7 +78,7 @@ namespace Support.UI
 		{
             m_dictionaryItems = new Dictionary<object,QueryItem>();
             InitPanel(zPanel, bTabbed);
-			X_LABEL_SIZE = (int)((float)m_zPanel.Width * 0.25);
+			XLabelSize = (int)((float)ZPanel.Width * 0.25);
 		}
 
         /// <summary>
@@ -91,9 +91,9 @@ namespace Support.UI
 		{
             m_dictionaryItems = new Dictionary<object, QueryItem>();
             InitPanel(zPanel, bTabbed);
-			if(0 < nLabelWidth && nLabelWidth < m_zPanel.Width)
+			if(0 < nLabelWidth && nLabelWidth < ZPanel.Width)
 			{
-				X_LABEL_SIZE = nLabelWidth;
+				XLabelSize = nLabelWidth;
 			}
 		}
 
@@ -104,22 +104,22 @@ namespace Support.UI
         /// <param name="bTabbed">Flag indicating whether to use a tab control</param>
         private void InitPanel(Panel zPanel, bool bTabbed)
 		{
-            m_nButtonHeight = new Button().Height;
+            NButtonHeight = new Button().Height;
 
             // setup the panel to contain the controls
-            m_zPanel = zPanel ?? new Panel();
-            m_zPanel.AutoScroll = false;
-            m_zCurrentLayoutControl = m_zPanel; // default to this as the main item
+            ZPanel = zPanel ?? new Panel();
+            ZPanel.AutoScroll = false;
+            m_zCurrentLayoutControl = ZPanel; // default to this as the main item
 
             if (bTabbed)
             {
                 m_bTabbed = true;
-                m_zTabControl = new TabControl
+                ZTabControl = new TabControl
                 {
                     Dock = DockStyle.Fill,
                     ClientSize = new Size(0, 0)
                 };
-                m_zPanel.Controls.Add(m_zTabControl);
+                ZPanel.Controls.Add(ZTabControl);
                 // The SwitchToTab method is used to add items
             }
              
@@ -133,9 +133,9 @@ namespace Support.UI
 	    public void FinalizeControls()
 	    {
 	        // add the panel controls after the client size has been set (adding them before displayed an odd issue with control anchor/size)
-	        foreach (var zLayoutControl in m_dictionaryLayoutControlControls.Keys)
+	        foreach (var zLayoutControl in DictionaryLayoutControlControls.Keys)
 	        {
-                m_dictionaryLayoutControlControls[zLayoutControl].ForEach(zControl => zLayoutControl.Controls.Add(zControl));
+                DictionaryLayoutControlControls[zLayoutControl].ForEach(zControl => zLayoutControl.Controls.Add(zControl));
 	        }
         }
 
@@ -146,10 +146,10 @@ namespace Support.UI
 	    private void AddPendingControl(Control zControl)
         {
             List<Control> listControls;
-            if (!m_dictionaryLayoutControlControls.TryGetValue(m_zCurrentLayoutControl, out listControls))
+            if (!DictionaryLayoutControlControls.TryGetValue(m_zCurrentLayoutControl, out listControls))
             {
                 listControls = new List<Control>();
-                m_dictionaryLayoutControlControls.Add(m_zCurrentLayoutControl, listControls);
+                DictionaryLayoutControlControls.Add(m_zCurrentLayoutControl, listControls);
             }
             listControls.Add(zControl);
 	    }
@@ -161,7 +161,7 @@ namespace Support.UI
 		/// <param name="nHeight">Label height</param>
 		public Label AddLabel(string sLabel, int nHeight)
 		{
-			Label zLabel = CreateLabel(sLabel);
+			var zLabel = CreateLabel(sLabel);
 			zLabel.Anchor = AnchorStyles.Right | AnchorStyles.Left | AnchorStyles.Top;
 			zLabel.TextAlign = ContentAlignment.MiddleLeft;
             zLabel.Size = new Size(m_zCurrentLayoutControl.ClientSize.Width - (X_CONTROL_BUFFER * 2), nHeight);
@@ -280,7 +280,7 @@ namespace Support.UI
             zNumeric.Value = dMin; // default this to a valid number...
             if (bFloat)
             {
-                int nZeroDecimalPlaces = 3 - (int)Math.Log10(Math.Max(Math.Abs((double)dMin), Math.Abs((double)dMax)));
+                var nZeroDecimalPlaces = 3 - (int)Math.Log10(Math.Max(Math.Abs((double)dMin), Math.Abs((double)dMax)));
                 // note the trackbar value is set below using the numeric change event
                 if (0 <= nZeroDecimalPlaces)
                 {
@@ -316,7 +316,7 @@ namespace Support.UI
             zLabel.Height = zNumeric.Height; // adjust the height of the label to match the control to its right
 
             zTrackBar.Location = new Point(zNumeric.Width + zNumeric.Location.X + X_CONTROL_BUFFER, GetYPosition());
-            zTrackBar.Size = new Size(m_zPanel.ClientSize.Width - (zTrackBar.Location.X + X_CONTROL_BUFFER), Y_CONTROL_HEIGHT);
+            zTrackBar.Size = new Size(ZPanel.ClientSize.Width - (zTrackBar.Location.X + X_CONTROL_BUFFER), Y_CONTROL_HEIGHT);
             zTrackBar.Tag = zNumeric; // the tag of the trackbar is the numeric (value changes will affect the numeric)
             zTrackBar.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top;
             zTrackBar.ValueChanged += numericSlider_ValueChanged;
@@ -666,7 +666,7 @@ namespace Support.UI
 	                return;
 	            }
 
-                if (DialogResult.OK == zDialog.ShowDialog(this.m_zPanel))
+                if (DialogResult.OK == zDialog.ShowDialog(this.ZPanel))
 	            {
 	                actionSelect(zDialog, zText);
 	            }
@@ -694,7 +694,7 @@ namespace Support.UI
 				zLabel.Text = sLabel;
 				zLabel.TextAlign = ContentAlignment.MiddleRight;
 				zLabel.Location = new Point(X_CONTROL_BUFFER, GetYPosition());
-				zLabel.Size = new Size(X_LABEL_SIZE, Y_CONTROL_HEIGHT);
+				zLabel.Size = new Size(XLabelSize, Y_CONTROL_HEIGHT);
 			}
 			else
 			{
@@ -724,16 +724,16 @@ namespace Support.UI
             {
                 throw new Exception("QueryPanel: Attempted to add tab on non-tabbed QueryPanel.");
             }
-            if (m_zTabControl.TabPages.ContainsKey(sTabName))
+            if (ZTabControl.TabPages.ContainsKey(sTabName))
             {
-                TabPage zPage = m_zTabControl.TabPages[sTabName];
+                var zPage = ZTabControl.TabPages[sTabName];
                 m_zCurrentLayoutControl = zPage;
                 return zPage;
             }
             else
             {
-                m_zTabControl.TabPages.Add(sTabName, sTabName);
-                var zPage = m_zTabControl.TabPages[sTabName];
+                ZTabControl.TabPages.Add(sTabName, sTabName);
+                var zPage = ZTabControl.TabPages[sTabName];
                 zPage.Tag = Y_CONTROL_BUFFER; // stores the current Y Position
                 zPage.AutoScroll = true;
                 zPage.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top;
@@ -788,8 +788,8 @@ namespace Support.UI
 
         public static void SetupScrollState(ScrollableControl scrollableControl)
         {
-            Type scrollableControlType = typeof(ScrollableControl);
-            MethodInfo setScrollStateMethod = scrollableControlType.GetMethod("SetScrollState", BindingFlags.NonPublic | BindingFlags.Instance);
+            var scrollableControlType = typeof(ScrollableControl);
+            var setScrollStateMethod = scrollableControlType.GetMethod("SetScrollState", BindingFlags.NonPublic | BindingFlags.Instance);
             setScrollStateMethod.Invoke(scrollableControl, new object[] { 0x10 /*ScrollableControl.ScrollStateFullDrag*/, true });
         }
 
@@ -1107,7 +1107,7 @@ namespace Support.UI
 					default:
 						return;
 				}
-                foreach (QueryItem zItem in m_listEnableControls)
+                foreach (var zItem in m_listEnableControls)
                 {
                     zItem.m_zControl.Enabled = bEnabled;
                     switch (zItem.m_eControlType)
@@ -1174,7 +1174,7 @@ namespace Support.UI
             var zNumeric = (NumericUpDown)zTrackBar.Tag;
             if (1 > zNumeric.Increment)
             {
-                zNumeric.Value = zNumeric.Minimum + ((decimal)zTrackBar.Value * zNumeric.Increment);
+                zNumeric.Value = zNumeric.Minimum + (zTrackBar.Value * zNumeric.Increment);
             }
             else
             {
@@ -1193,7 +1193,7 @@ namespace Support.UI
             var zTrackBar = (TrackBar)zNumeric.Tag;
             if (1 > zNumeric.Increment)
             {
-                zTrackBar.Value = (int)((zNumeric.Value - zNumeric.Minimum) * ((decimal)1 / zNumeric.Increment));
+                zTrackBar.Value = (int)((zNumeric.Value - zNumeric.Minimum) * (1 / zNumeric.Increment));
             }
             else
             {

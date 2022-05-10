@@ -25,7 +25,7 @@
 using System;
 using System.Windows.Forms;
 using KeyCap.Forms;
-using Support.UI;
+using KeyCap.Support.UI;
 
 namespace KeyCap
 {

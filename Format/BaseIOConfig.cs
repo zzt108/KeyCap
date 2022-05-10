@@ -27,27 +27,27 @@ using KeyCap.Util;
 
 namespace KeyCap.Format
 {
-    public abstract class BaseIOConfig
+    public abstract class BaseIoConfig
     {
         public int Flags { get; set; }
         // https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
         public byte VirtualKey { get; set; }
         public int Parameter { get; set; }
 
-        public BaseIOConfig() { }
+        public BaseIoConfig() { }
 
         /// <summary>
         /// Clone constructor
         /// </summary>
         /// <param name="config"></param>
-        public BaseIOConfig(BaseIOConfig config)
+        public BaseIoConfig(BaseIoConfig config)
         {
             Flags = config.Flags;
             VirtualKey = config.VirtualKey;
             Parameter = config.Parameter;
         }
 
-        public BaseIOConfig(Stream zStream)
+        public BaseIoConfig(Stream zStream)
         {
             Flags = StreamUtil.ReadIntFromStream(zStream);
             VirtualKey = StreamUtil.ReadByteFromStream(zStream);

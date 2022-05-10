@@ -24,9 +24,9 @@
 
 using System;
 using System.IO;
-using Support.UI;
+using KeyCap.Support.UI;
 
-namespace KeyCap.Format
+namespace KeyCap.Util
 {
     public static class StreamUtil
     {

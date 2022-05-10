@@ -27,7 +27,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Windows.Forms;
 
-namespace Support.UI
+namespace KeyCap.Support.UI
 {
 	/// <summary>
 	/// Handles Form "dirty/clean" states in relation to file loading / saving. Acts as
@@ -39,13 +39,13 @@ namespace Support.UI
 	public class AbstractDirtyForm : Form
 	{
         private string m_sCurrentDirectory = string.Empty;
-		protected string m_sBaseTitle = string.Empty;
-		protected string m_sLoadedFile = string.Empty;
-		protected string m_sFileOpenFilter = string.Empty;
+		protected string SBaseTitle = string.Empty;
+		protected string SLoadedFile = string.Empty;
+		protected string SFileOpenFilter = string.Empty;
 
 	    public string LoadedFile
 	    {
-	        get { return m_sLoadedFile; }
+	        get { return SLoadedFile; }
 	    }
 
         protected bool Dirty { get; private set; }
@@ -53,9 +53,9 @@ namespace Support.UI
 		/// <summary>
 		/// This method should have an override that performs the save of the data to the file.
 		/// </summary>
-		/// <param name="sFileName">The file to save the data to</param>
+		/// <param name="strFileName">The file to save the data to</param>
 		/// <returns>true on success, false otherwise</returns>
-		protected virtual bool SaveFormData(string sFileName)
+		protected virtual bool SaveFormData(string strFileName)
 		{
 			MessageBox.Show(this, "DEV Error: Please override AbstractDirtyForm.SaveFormData");
 			return false;
@@ -114,8 +114,8 @@ namespace Support.UI
         /// </summary>
         protected void InitNew()
         {
-            m_sLoadedFile = string.Empty;
-            Text = m_sBaseTitle;
+            SLoadedFile = string.Empty;
+            Text = SBaseTitle;
             MarkClean();
         }
 
@@ -127,9 +127,9 @@ namespace Support.UI
 		    var ofn = new OpenFileDialog
 		    {
 		        InitialDirectory = GetDialogDirectory(),
-                Filter = 0 == m_sFileOpenFilter.Length 
+                Filter = 0 == SFileOpenFilter.Length 
                     ? "All files (*.*)|*.*"
-                    : m_sFileOpenFilter
+                    : SFileOpenFilter
 		    };
             if(DialogResult.OK == ofn.ShowDialog(this))
 			{
@@ -172,8 +172,8 @@ namespace Support.UI
         /// <param name="sFileName"></param>
         protected void SetLoadedFile(string sFileName)
         {
-            m_sLoadedFile = sFileName;
-            Text = m_sBaseTitle + " [" + m_sLoadedFile + "]";
+            SLoadedFile = sFileName;
+            Text = SBaseTitle + " [" + SLoadedFile + "]";
             MarkClean();
         }
 
@@ -215,16 +215,16 @@ namespace Support.UI
 		protected void InitSave(bool bForceSaveAs)
 		{
 
-            if (string.IsNullOrEmpty(m_sLoadedFile) || bForceSaveAs)
+            if (string.IsNullOrEmpty(SLoadedFile) || bForceSaveAs)
             {
                 var sfn = new SaveFileDialog
                 {
                     InitialDirectory = GetDialogDirectory(),
                     OverwritePrompt = true
                 };
-                sfn.Filter = 0 == m_sFileOpenFilter.Length
+                sfn.Filter = 0 == SFileOpenFilter.Length
                     ? "All files (*.*)|*.*"
-                    : m_sFileOpenFilter;
+                    : SFileOpenFilter;
 
 			    if (DialogResult.OK == sfn.ShowDialog(this))
 			    {
@@ -243,9 +243,9 @@ namespace Support.UI
 			        return;
 			    }
 			}
-            if (!SaveFormData(m_sLoadedFile))
+            if (!SaveFormData(SLoadedFile))
             {
-                MessageBox.Show(this, "Error saving to file: " + m_sLoadedFile, "File Save Error",
+                MessageBox.Show(this, "Error saving to file: " + SLoadedFile, "File Save Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else
