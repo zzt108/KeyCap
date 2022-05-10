@@ -145,8 +145,7 @@ namespace KeyCap.Support.UI
         /// <param name="zControl">The control to add</param>
 	    private void AddPendingControl(Control zControl)
         {
-            List<Control> listControls;
-            if (!DictionaryLayoutControlControls.TryGetValue(m_zCurrentLayoutControl, out listControls))
+	        if (!DictionaryLayoutControlControls.TryGetValue(m_zCurrentLayoutControl, out var listControls))
             {
                 listControls = new List<Control>();
                 DictionaryLayoutControlControls.Add(m_zCurrentLayoutControl, listControls);
@@ -285,7 +284,7 @@ namespace KeyCap.Support.UI
                 if (0 <= nZeroDecimalPlaces)
                 {
                     zNumeric.Increment = new Decimal(
-                        float.Parse("0." + "1".PadLeft(1 + nZeroDecimalPlaces, '0'), NumberStyles.Any, CultureInfo.InvariantCulture));
+                        float.Parse($"0.{"1".PadLeft(1 + nZeroDecimalPlaces, '0')}", NumberStyles.Any, CultureInfo.InvariantCulture));
                     zNumeric.DecimalPlaces = nZeroDecimalPlaces + 1;
                 }
                 else
@@ -751,8 +750,7 @@ namespace KeyCap.Support.UI
 		/// <returns>true on success, false otherwise</returns>
 		public bool AddEnableControl(object zQueryKey, object zQueryKeyEnable)
 		{
-            QueryItem zQueryItem, zQueryItemEnable;
-            if (m_dictionaryItems.TryGetValue(zQueryKey, out zQueryItem) && m_dictionaryItems.TryGetValue(zQueryKeyEnable, out zQueryItemEnable))
+			if (m_dictionaryItems.TryGetValue(zQueryKey, out var zQueryItem) && m_dictionaryItems.TryGetValue(zQueryKeyEnable, out var zQueryItemEnable))
 			{
                 (zQueryItem).AddEnableControl(zQueryItemEnable);
 				return true;
@@ -980,8 +978,7 @@ namespace KeyCap.Support.UI
 		/// <returns></returns>
 		private QueryItem GetQueryItem(object zQueryKey)
 		{
-            QueryItem zQueryItem;
-            if (!m_dictionaryItems.TryGetValue(zQueryKey, out zQueryItem))
+			if (!m_dictionaryItems.TryGetValue(zQueryKey, out var zQueryItem))
             {
                 ThrowBadQueryException();
             }

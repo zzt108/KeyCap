@@ -38,7 +38,7 @@ namespace KeyCap.Format
         /// Copy constructor
         /// </summary>
         /// <param name="config"></param>
-        public OutputConfig(OutputConfig config) : base(config) { }
+        public OutputConfig(BaseIoConfig config) : base(config) { }
 
         /// <summary>
         /// Flags applied to a given input/output key
@@ -68,12 +68,12 @@ namespace KeyCap.Format
         }
 
         /// <summary>
-        /// Constructor for an InputConfig
+        /// Constructor for an ??? Config
         /// </summary>
         /// <param name="nFlags">The flags defining the input</param>
         /// <param name="byVirtualKey">The value of the input</param>
         /// <param name="eKeyArgs">The input key arguments from user input</param>
-        public OutputConfig(int nFlags, byte byVirtualKey, int nParameter, KeyEventArgs eKeyArgs)
+        public OutputConfig(int nFlags, byte byVirtualKey, int nParameter = 0, KeyEventArgs eKeyArgs = null)
         {
             Flags = nFlags;
             VirtualKey = byVirtualKey;
@@ -89,19 +89,12 @@ namespace KeyCap.Format
         }
 
         /// <summary>
-        /// Constructor for an InputConfig
+        /// Constructor for an ??? Config
         /// </summary>
         /// <param name="nFlags">The flags defining the input</param>
         /// <param name="byVirtualKey">The value of the input</param>
         /// <param name="nParameter"></param>
         public OutputConfig(int nFlags, byte byVirtualKey, int nParameter) : this(nFlags, byVirtualKey, nParameter, null) { }
-
-        /// <summary>
-        /// Constructor for an InputConfig
-        /// </summary>
-        /// <param name="nFlags">The flags defining the input</param>
-        /// <param name="byVirtualKey">The value of the input</param>
-        public OutputConfig(int nFlags, byte byVirtualKey):this(nFlags, byVirtualKey, 0, null) { }
 
         public OutputConfig(Stream zStream) : base(zStream) { }
 
@@ -156,21 +149,8 @@ namespace KeyCap.Format
         /// <returns></returns>
         private string GetOutputDescriptionText(Enum eInputId, string sActionPrefix)
         {
-            return "[" +
-                   eInputId +
-                   (IsFlaggedAs(OutputFlag.Down) && IsFlaggedAs(OutputFlag.Up)
-                       ? ":Press"
-                       : ((IsFlaggedAs(OutputFlag.Down) ? ":{0}Down".FormatString(sActionPrefix) : string.Empty) +
-                          (IsFlaggedAs(OutputFlag.Up) ? ":{0}Up".FormatString(sActionPrefix) : string.Empty))
-                   ) +
-                   (IsFlaggedAs(OutputFlag.Shift) ? "+Shift" : string.Empty) +
-                   (IsFlaggedAs(OutputFlag.Alt) ? "+Alt" : string.Empty) +
-                   (IsFlaggedAs(OutputFlag.Control) ? "+Control" : string.Empty) +
-                   (IsFlaggedAs(OutputFlag.Toggle) ? "+Toggle" : string.Empty) +
-                   (IsFlaggedAs(OutputFlag.Repeat) ? "+Repeat"
-                       + (Parameter > 0 ? "({0}ms)".FormatString(Parameter) : "")
-                       : string.Empty) +
-                   "]";
+            return
+                $"[{eInputId}{(IsFlaggedAs(OutputFlag.Down) && IsFlaggedAs(OutputFlag.Up) ? ":Press" : ((IsFlaggedAs(OutputFlag.Down) ? ":{0}Down".FormatString(sActionPrefix) : string.Empty) + (IsFlaggedAs(OutputFlag.Up) ? ":{0}Up".FormatString(sActionPrefix) : string.Empty)))}{(IsFlaggedAs(OutputFlag.Shift) ? "+Shift" : string.Empty)}{(IsFlaggedAs(OutputFlag.Alt) ? "+Alt" : string.Empty)}{(IsFlaggedAs(OutputFlag.Control) ? "+Control" : string.Empty)}{(IsFlaggedAs(OutputFlag.Toggle) ? "+Toggle" : string.Empty)}{(IsFlaggedAs(OutputFlag.Repeat) ? $"+Repeat{(Parameter > 0 ? "({0}ms)".FormatString(Parameter) : "")}" : string.Empty)}]";
         }
     }
 }

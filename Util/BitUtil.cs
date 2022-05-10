@@ -32,7 +32,6 @@ namespace KeyCap.Util
         /// Determines if the input type is flagged (as the there are multiple flags)
         /// </summary>
         /// <param name="eFlagBit">Flag to check for (assumes this is a bit index)</param>
-        /// <param name="byFlags">byte to check for the flag within</param>
         /// <returns>true if the flag bit is 1, false otherwise</returns>
         public static bool IsFlagged(int nFlags, Enum eFlagBit)
         {

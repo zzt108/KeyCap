@@ -42,6 +42,7 @@ namespace KeyCap.Support.UI
 		protected string SBaseTitle = string.Empty;
 		protected string SLoadedFile = string.Empty;
 		protected string SFileOpenFilter = string.Empty;
+		protected string SFileSaveFilter = string.Empty;
 
 	    public string LoadedFile
 	    {
@@ -147,7 +148,7 @@ namespace KeyCap.Support.UI
                     }
 
 			    }
-			    MessageBox.Show(this, "Error opening [" + ofn.FileName + "] Wrong file type?", "File Open Error");
+			    MessageBox.Show(this, $"Error opening [{ofn.FileName}] Wrong file type?", "File Open Error");
 			}
 		}
 
@@ -173,7 +174,7 @@ namespace KeyCap.Support.UI
         protected void SetLoadedFile(string sFileName)
         {
             SLoadedFile = sFileName;
-            Text = SBaseTitle + " [" + SLoadedFile + "]";
+            Text = $"{SBaseTitle} [{SLoadedFile}]";
             MarkClean();
         }
 
@@ -222,11 +223,12 @@ namespace KeyCap.Support.UI
                     InitialDirectory = GetDialogDirectory(),
                     OverwritePrompt = true
                 };
-                sfn.Filter = 0 == SFileOpenFilter.Length
-                    ? "All files (*.*)|*.*"
-                    : SFileOpenFilter;
+                if (0 == SFileSaveFilter.Length)
+	                sfn.Filter = "All files (*.*)|*.*";
+                else
+	                sfn.Filter = SFileSaveFilter;
 
-			    if (DialogResult.OK == sfn.ShowDialog(this))
+                if (DialogResult.OK == sfn.ShowDialog(this))
 			    {
 			        var sPath = Path.GetDirectoryName(sfn.FileName);
 			        if (null != sPath)
@@ -245,7 +247,7 @@ namespace KeyCap.Support.UI
 			}
             if (!SaveFormData(SLoadedFile))
             {
-                MessageBox.Show(this, "Error saving to file: " + SLoadedFile, "File Save Error",
+                MessageBox.Show(this, $"Error saving to file: {SLoadedFile}", "File Save Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else

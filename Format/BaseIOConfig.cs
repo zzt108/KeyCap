@@ -34,20 +34,20 @@ namespace KeyCap.Format
         public byte VirtualKey { get; set; }
         public int Parameter { get; set; }
 
-        public BaseIoConfig() { }
+        protected BaseIoConfig() { }
 
         /// <summary>
         /// Clone constructor
         /// </summary>
         /// <param name="config"></param>
-        public BaseIoConfig(BaseIoConfig config)
+        protected BaseIoConfig(BaseIoConfig config)
         {
             Flags = config.Flags;
             VirtualKey = config.VirtualKey;
             Parameter = config.Parameter;
         }
 
-        public BaseIoConfig(Stream zStream)
+        protected BaseIoConfig(Stream zStream)
         {
             Flags = StreamUtil.ReadIntFromStream(zStream);
             VirtualKey = StreamUtil.ReadByteFromStream(zStream);

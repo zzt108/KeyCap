@@ -42,12 +42,12 @@ namespace KeyCap.Settings
 
         private bool IsArgPresent(CommandLineArgument eArgument)
         {
-            return Arguments.Contains("-" + eArgument.ToString().ToLower());
+            return Arguments.Contains($"-{eArgument.ToString().ToLower()}");
         }
 
         private string GetStringArg(CommandLineArgument eArgument)
         {
-            var nIndex = Arguments.IndexOf("-" + eArgument.ToString().ToLower());
+            var nIndex = Arguments.IndexOf($"-{eArgument.ToString().ToLower()}");
             if (nIndex == -1 || nIndex + 1 == Arguments.Count)
                 return null;
             return Arguments[nIndex + 1];

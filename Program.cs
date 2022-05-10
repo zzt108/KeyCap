@@ -37,7 +37,7 @@ namespace KeyCap
         [STAThread]
         static void Main(string[] args)
         {
-            Win32.ShowConsole(Application.ProductName + " Console " + DateTime.Now.ToString("MM/dd/yy hh:mm:ss"),
+            Win32.ShowConsole($"{Application.ProductName} Console {DateTime.Now:MM/dd/yy hh:mm:ss}",
 #if DEBUG
                 true
 #else

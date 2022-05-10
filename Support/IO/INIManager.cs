@@ -54,7 +54,7 @@ namespace KeyCap.Support.IO
         /// <summary>
         /// Sets the IniManager to flush to the ini file every time a value is set. (Automatic call to FlushIniSettings)
         /// </summary>
-        private bool AutoFlush { get; set; }
+        private bool AutoFlush { get; }
 
         /// <summary>
         /// The ini file path
@@ -66,8 +66,9 @@ namespace KeyCap.Support.IO
         /// </summary>
         /// <param name="sFileName">The file to use in the IniManager</param>
         /// <param name="bReadOnly">Flag indicating items can only be read</param>
-        public IniManager(string sFileName, bool bReadOnly)
+        public IniManager(string sFileName, bool bReadOnly, bool autoFlush)
         {
+            AutoFlush = autoFlush;
             Init(sFileName, bReadOnly, true, false);
         }
 
@@ -77,8 +78,9 @@ namespace KeyCap.Support.IO
         /// <param name="sFileName">Path of the ini file (or just the name)</param>
         /// <param name="bReadOnly">Flag indicating items can only be read</param>
         /// <param name="bUseApplicationPath">Automatically construct the full path using the startup path and append .ini</param>
-        public IniManager(string sFileName, bool bReadOnly, bool bUseApplicationPath)
+        public IniManager(string sFileName, bool bReadOnly, bool bUseApplicationPath, bool autoFlush)
         {
+            AutoFlush = autoFlush;
             Init(sFileName, bReadOnly, bUseApplicationPath, false);
         }
 
@@ -89,8 +91,9 @@ namespace KeyCap.Support.IO
         /// <param name="bReadOnly">Flag indicating items can only be read</param>
         /// <param name="bUseApplicationPath">Automatically construct the full path using the startup path and append .ini</param>
         /// <param name="bMatchCase">Items in the ini file must match the case of the item specified.</param>
-        public IniManager(string sFileName, bool bReadOnly, bool bUseApplicationPath, bool bMatchCase)
+        public IniManager(string sFileName, bool bReadOnly, bool bUseApplicationPath, bool bMatchCase, bool autoFlush)
         {
+            AutoFlush = autoFlush;
             Init(sFileName, bReadOnly, bUseApplicationPath, bMatchCase);
         }
 
@@ -104,7 +107,7 @@ namespace KeyCap.Support.IO
         private void Init(string sFileName, bool bReadOnly, bool bUseApplicationPath, bool bMatchCase)
         {
             if (bUseApplicationPath)
-                Filename = Application.StartupPath + Path.DirectorySeparatorChar + sFileName + ".ini";
+                Filename = $"{Application.StartupPath}{Path.DirectorySeparatorChar}{sFileName}.ini";
             else
                 Filename = sFileName;
 
@@ -123,13 +126,7 @@ namespace KeyCap.Support.IO
         {
             var sCheck = m_bMatchCase ? sItem : sItem.ToLower();
 
-            string sValue;
-            if (m_dictionaryItems.TryGetValue(sCheck, out sValue))
-            {
-                return sValue;
-            }
-
-            return sDefault;
+            return m_dictionaryItems.TryGetValue(sCheck, out var sValue) ? sValue : sDefault;
         }
 
         /// <summary>
@@ -151,7 +148,7 @@ namespace KeyCap.Support.IO
         public void SetValue(string sItem, string sValue)
         {
             if(m_bReadOnly)
-                throw new Exception("Attempting to write to a read-only IniManager! " + Filename);
+                throw new Exception($"Attempting to write to a read-only IniManager! {Filename}");
 
             var sCheck = m_bMatchCase ? sItem : sItem.ToLower();
 
@@ -251,13 +248,11 @@ namespace KeyCap.Support.IO
         {
             if (FormWindowState.Normal == zForm.WindowState)
             {
-                return zForm.Location.X + ";" + zForm.Location.Y + ";" +
-                       zForm.Size.Width + ";" + zForm.Size.Height + ";" +
-                       (int) zForm.WindowState;
+                return
+                    $"{zForm.Location.X};{zForm.Location.Y};{zForm.Size.Width};{zForm.Size.Height};{(int) zForm.WindowState}";
             }
-            return zForm.RestoreBounds.Location.X + ";" + zForm.RestoreBounds.Location.Y + ";" +
-                    zForm.RestoreBounds.Size.Width + ";" + zForm.RestoreBounds.Size.Height + ";" +
-                    (int)zForm.WindowState;
+            return
+                $"{zForm.RestoreBounds.Location.X};{zForm.RestoreBounds.Location.Y};{zForm.RestoreBounds.Size.Width};{zForm.RestoreBounds.Size.Height};{(int) zForm.WindowState}";
         }
 
         /// <summary>

@@ -36,7 +36,7 @@ namespace KeyCap.Format
         /// Copy constructor
         /// </summary>
         /// <param name="config"></param>
-        public InputConfig(InputConfig config) : base(config) { }
+        public InputConfig(BaseIoConfig config) : base(config) { }
 
         /// <summary>
         /// Flags applied to a given input key (this is the same size as the OutputFlag (32bit)
@@ -71,12 +71,8 @@ namespace KeyCap.Format
 
         public override string GetDescription()
         {
-            return "[" +
-                   (Keys)VirtualKey +
-                   (IsFlaggedAs(InputFlag.Shift) ? "+Shift" : string.Empty) +
-                   (IsFlaggedAs(InputFlag.Alt) ? "+Alt" : string.Empty) +
-                   (IsFlaggedAs(InputFlag.Control) ? "+Control" : string.Empty) +
-                   "]";
+            return
+                $"[{(Keys) VirtualKey}{(IsFlaggedAs(InputFlag.Shift) ? "+Shift" : string.Empty)}{(IsFlaggedAs(InputFlag.Alt) ? "+Alt" : string.Empty)}{(IsFlaggedAs(InputFlag.Control) ? "+Control" : string.Empty)}]";
         }
     }
 }

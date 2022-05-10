@@ -41,13 +41,15 @@ namespace KeyCap.Forms
 {
     public partial class KeyCaptureConfig
     {
+/*
         private readonly ConfigFileManager m_zConfigFileManager = new ConfigFileManager();
+*/
         private readonly List<string> m_listRecentFiles = new List<string>();
         private readonly KeyCapInstanceState m_zInstanceState;
         private readonly IniManager m_zIniManager = new IniManager(Application.ProductName, false, true, false);
 
         private FormWindowState m_ePrevWindowState = FormWindowState.Normal;
-        private bool m_bShutdownApplication = false;
+        private bool m_bShutdownApplication;
         
         /// <summary>
         /// Text to display on the button to start/stop capturing
@@ -58,6 +60,12 @@ namespace KeyCap.Forms
             Stop
         }
 
+        public static class ValidExtension
+        {
+            public const string JSON = ".json";
+            public const string KFG = ".kfg";
+        }
+        
         /// <summary>
         /// Constructs a new dialog
         /// </summary>
@@ -65,8 +73,11 @@ namespace KeyCap.Forms
         public KeyCaptureConfig(IReadOnlyList<string> args)
         {
             InitializeComponent();
-            SBaseTitle = Application.ProductName + " Configuration " + Application.ProductVersion;
-            SFileOpenFilter = Application.ProductName + " Config files (*.kfg)|*.kfg|All files (*.*)|*.*";
+            SBaseTitle = $"{Application.ProductName} Configuration {Application.ProductVersion}";
+            SFileOpenFilter =
+                $"{Application.ProductName} Config files (*{ValidExtension.KFG})|*{ValidExtension.KFG}|All files (*.*)|*.*";
+            SFileSaveFilter =
+                $"{Application.ProductName} Json files (*{ValidExtension.JSON})|*{ValidExtension.JSON}|{Application.ProductName} Config files (*{ValidExtension.KFG})|*{ValidExtension.KFG}|All files (*.*)|*.*";
             Text = SBaseTitle;
             
             m_zInstanceState = new KeyCapInstanceState(args);
@@ -76,6 +87,12 @@ namespace KeyCap.Forms
             {
                 InitOpen(m_zInstanceState.DefaultConfigFile);
             }
+        }
+
+        public sealed override string Text
+        {
+            get { return base.Text; }
+            set { base.Text = value; }
         }
 
         #region Form Events
@@ -175,7 +192,7 @@ namespace KeyCap.Forms
             }
             catch (Exception ex)
             {
-                MessageBox.Show(this, "Unfortunately you have specified an unsupported character (at this time)." + ex.ToString(), "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(this, $"Unfortunately you have specified an unsupported character (at this time).{ex}", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -259,7 +276,18 @@ namespace KeyCap.Forms
         {
             var listConfigs = new List<RemapEntry>(listViewKeys.Items.Count);
             listConfigs.AddRange(from ListViewItem item in listViewKeys.Items select (RemapEntry) item.Tag);
-            m_zConfigFileManager.SaveFileJson(listConfigs, strFileName);
+            if (strFileName.Contains(ValidExtension.JSON))
+            {
+                ConfigFileManager.SaveFileJson(listConfigs, strFileName);
+            }
+            else if (strFileName.Contains(ValidExtension.KFG))
+            {
+                ConfigFileManager.SaveFile(listConfigs, strFileName);
+            }
+            else
+            {
+                throw new Exception($"Invalid file type {strFileName}");
+            }
             // on save the project list should be updated
             UpdateProjectsList(strFileName);
             return true;
@@ -272,7 +300,7 @@ namespace KeyCap.Forms
             listViewKeys.Items.Clear();
             try
             {
-                var listConfigs = m_zConfigFileManager.LoadFile(sFileName);
+                var listConfigs = ConfigFileManager.LoadFile(sFileName);
                 listConfigs.ForEach(ioc =>
                 {
                     listViewKeys.Items.Add(new ListViewItem(new[]
@@ -486,7 +514,7 @@ namespace KeyCap.Forms
                         case CaptureMessage.InputMissing:
                         case CaptureMessage.InputZero:
                         default:
-                            Console.WriteLine("Error: " + eReturn);
+                            Console.WriteLine($"Error: {eReturn}");
                             ConfigureControls(false);
                             break;
                     }
@@ -742,11 +770,7 @@ namespace KeyCap.Forms
             }
 
             zOutputConfig = UpdateOutputFlags(new OutputConfig(zCurrentOutputConfig));
-            if (!ValidateOutputHasAction(zOutputConfig))
-            {
-                return false;
-            }
-            return true;
+            return ValidateOutputHasAction(zOutputConfig);
         }
 
         private bool ValidateOutputHasAction(OutputConfig zOutputConfig)
@@ -771,7 +795,7 @@ namespace KeyCap.Forms
             return new OutputConfig(nFlags, byteKey);
         }
 
-        private byte GetKeysByte(char cInput, ref bool bShift)
+        private static byte GetKeysByte(char cInput, ref bool bShift)
         {
             bShift = char.IsUpper(cInput);
             try
@@ -847,7 +871,7 @@ namespace KeyCap.Forms
                     return (byte)Keys.OemQuestion;
             }
 
-            throw new Exception("Unsupported character: " + cInput);
+            throw new Exception($"Unsupported character: {cInput}");
         }
 
         private void ShowKeysNotDefinedError()

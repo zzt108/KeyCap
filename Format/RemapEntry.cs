@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace KeyCap.Format
 {
@@ -34,8 +35,8 @@ namespace KeyCap.Format
     /// </summary>
     public class RemapEntry
     {
-        private InputConfig InputConfig { get; set; }
-        private List<OutputConfig> OutputConfigs { get; set; }
+        private InputConfig InputConfig { get; }
+        private List<OutputConfig> OutputConfigs { get; }
 
         public int OutputConfigCount => OutputConfigs?.Count ?? 0;
 
@@ -107,6 +108,10 @@ namespace KeyCap.Format
             return zStream.ToArray();
         }
 
+        public string SerializeToJson()
+        {
+            return JsonConvert.SerializeObject(this);
+        }
         /// <summary>
         /// Returns the input string representation
         /// </summary>

@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -40,12 +41,17 @@ namespace KeyCap.Format
         {
             public ExternalData(List<RemapEntry> listRemapEntries)
             {
-                this.ListRemapEntries = listRemapEntries.ToArray();
+                this.ListJsonRemapEntries = new ArrayList();
+                foreach (var remapEntry in listRemapEntries)
+                {
+                    this.ListJsonRemapEntries.Add(remapEntry.SerializeToJson());
+                }
             }
-            
+
             public int FileDataPrefix = ConfigFileManager.FileDataPrefix;
+
             public int DataFormatVersion = ConfigFileManager.DataFormatVersion;
-            public RemapEntry[] ListRemapEntries;
+            public ArrayList ListJsonRemapEntries;
         }
 
         private const int FileDataPrefix = 0x0E0CA000;
@@ -56,7 +62,7 @@ namespace KeyCap.Format
         /// </summary>
         /// <param name="listRemapEntries">The entries to persist</param>
         /// <param name="sFileName">The name of the file to save to</param>
-        public void SaveFile(List<RemapEntry> listRemapEntries, string sFileName)
+        public static void SaveFile(List<RemapEntry> listRemapEntries, string sFileName)
         {
             using (var fileStream = new FileStream(sFileName, FileMode.Create, FileAccess.Write, FileShare.None))
             {
@@ -76,17 +82,21 @@ namespace KeyCap.Format
         /// </summary>
         /// <param name="listRemapEntries">The entries to persist</param>
         /// <param name="strFileName">The name of the file to save to</param>
-        public void SaveFileJson(List<RemapEntry> listRemapEntries, string strFileName)
+        public static void SaveFileJson(List<RemapEntry> listRemapEntries, string strFileName)
         {
             var serializer = new JsonSerializer();
             serializer.Converters.Add(new JavaScriptDateTimeConverter());
             serializer.NullValueHandling = NullValueHandling.Ignore;
 
             using (var sw = new StreamWriter(strFileName))
-            using (JsonWriter writer = new JsonTextWriter(sw))
             {
-                serializer.Serialize(writer, new ExternalData(listRemapEntries));
+                var json = JsonConvert.SerializeObject(new ExternalData(listRemapEntries), Formatting.Indented);
+                sw.Write(json);
             }
+            // using (JsonWriter writer = new JsonTextWriter(sw))
+            // {
+            //     serializer.Serialize(writer, new ExternalData(listRemapEntries));
+            // }
         }
 
         /// <summary>
@@ -94,39 +104,39 @@ namespace KeyCap.Format
         /// </summary>
         /// <param name="sFileName"></param>
         /// <returns></returns>
-        public List<RemapEntry> LoadFile(string sFileName)
+        public static List<RemapEntry> LoadFile(string sFileName)
         {
-            FileStream zFileStream = null;
             var listConfigs = new List<RemapEntry>();
             try
             {
-                zFileStream = new FileStream(sFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
-                var nPrefix = StreamUtil.ReadIntFromStream(zFileStream);
-                if (nPrefix != FileDataPrefix)
+                // zFileStream = new FileStream(sFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+                FileStream zFileStream;
+                using (zFileStream = new FileStream(sFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    throw new Exception(
-                        "{} does not have the correct data prefix. This is likely an unsupported format.".FormatString(
-                            sFileName));
-                }
+                    var nPrefix = StreamUtil.ReadIntFromStream(zFileStream);
+                    if (nPrefix != FileDataPrefix)
+                    {
+                        throw new Exception(
+                            "{} does not have the correct data prefix. This is likely an unsupported format."
+                                .FormatString(
+                                    sFileName));
+                    }
 
-                var nDataFormatVersion = StreamUtil.ReadIntFromStream(zFileStream);
-                if (nDataFormatVersion != DataFormatVersion)
-                {
-                    throw new Exception("{} indicates an unsupported data format.".FormatString(sFileName));
-                }
+                    var nDataFormatVersion = StreamUtil.ReadIntFromStream(zFileStream);
+                    if (nDataFormatVersion != DataFormatVersion)
+                    {
+                        throw new Exception("{} indicates an unsupported data format.".FormatString(sFileName));
+                    }
 
-                while (zFileStream.Position < zFileStream.Length)
-                {
-                    listConfigs.Add(new RemapEntry(zFileStream));
+                    while (zFileStream.Position < zFileStream.Length)
+                    {
+                        listConfigs.Add(new RemapEntry(zFileStream));
+                    }
                 }
             }
             catch (Exception e)
             {
                 MessageBox.Show(e.Message);
-            }
-            finally
-            {
-                zFileStream?.Close();
             }
 
             return listConfigs;
