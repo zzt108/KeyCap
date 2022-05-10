@@ -76,7 +76,7 @@ namespace KeyCap.Forms
             InitializeComponent();
             SBaseTitle = $"{Application.ProductName} Configuration {Application.ProductVersion}";
             SFileOpenFilter =
-                $"{Application.ProductName} Config files (*{ValidExtension.KFG})|*{ValidExtension.KFG}|All files (*.*)|*.*";
+                $"{Application.ProductName} Json files (*{ValidExtension.JSON})|*{ValidExtension.JSON}|{Application.ProductName} Config files (*{ValidExtension.KFG})|*{ValidExtension.KFG}|All files (*.*)|*.*";
             SFileSaveFilter =
                 $"{Application.ProductName} Json files (*{ValidExtension.JSON})|*{ValidExtension.JSON}|{Application.ProductName} Config files (*{ValidExtension.KFG})|*{ValidExtension.KFG}|All files (*.*)|*.*";
             Text = SBaseTitle;
