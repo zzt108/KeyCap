@@ -35,13 +35,20 @@ namespace KeyCap.Format
     /// </summary>
     public class RemapEntry
     {
-        public InputConfig InputConfig { get; }
-        public List<OutputConfig> OutputConfigs { get; }
+        // ReSharper disable once MemberCanBePrivate.Global
+        public InputConfig InputConfig { get; set; }
+        // ReSharper disable once MemberCanBePrivate.Global
+        public List<OutputConfig> OutputConfigs { get; set; }
 
+        [JsonIgnore]
         public int OutputConfigCount => OutputConfigs?.Count ?? 0;
 
         private readonly int m_nHash;
 
+        public RemapEntry()
+        {
+            
+        }
         /// <summary>
         /// Constructor based on input/output definitions
         /// </summary>
@@ -51,6 +58,14 @@ namespace KeyCap.Format
         {
             InputConfig = zInputConfig;
             OutputConfigs = new List<OutputConfig>(new[] {zOutputConfig});
+            m_nHash = CalculateHashCode(InputConfig);
+        }
+
+        // [JsonConstructor]
+        public RemapEntry(InputConfig zInputConfig, List<OutputConfig> zOutputConfigs)
+        {
+            InputConfig = zInputConfig;
+            OutputConfigs = zOutputConfigs;
             m_nHash = CalculateHashCode(InputConfig);
         }
 
@@ -108,10 +123,10 @@ namespace KeyCap.Format
             return zStream.ToArray();
         }
 
-        public string SerializeToJson()
-        {
-            return JsonConvert.SerializeObject(this);
-        }
+        // public string SerializeToJson()
+        // {
+        //     return JsonConvert.SerializeObject(this);
+        // }
 
         /// <summary>
         /// Returns the input string representation

@@ -24,6 +24,7 @@
 
 using System.IO;
 using System.Windows.Forms;
+using Newtonsoft.Json;
 
 namespace KeyCap.Format
 {
@@ -37,6 +38,14 @@ namespace KeyCap.Format
         /// </summary>
         /// <param name="config"></param>
         public InputConfig(BaseIoConfig config) : base(config) { }
+
+        [JsonConstructor]
+        public InputConfig(int flags, byte virtualKey, int parameter)
+        {
+            Flags = flags;
+            VirtualKey = virtualKey;
+            Parameter = parameter;
+        }
 
         /// <summary>
         /// Flags applied to a given input key (this is the same size as the OutputFlag (32bit)
@@ -52,7 +61,6 @@ namespace KeyCap.Format
         /// <summary>
         /// Constructor for an InputConfig
         /// </summary>
-        /// <param name="byFlags">The flags defining the input</param>
         /// <param name="byVirtualKey">The value of the input</param>
         /// <param name="eKeyArgs">The input key arguments from user input</param>
         public InputConfig(byte byVirtualKey, KeyEventArgs eKeyArgs)
@@ -61,13 +69,15 @@ namespace KeyCap.Format
 
             if (null != eKeyArgs)
             {
-                Flags |= (eKeyArgs.Shift ? (int)InputFlag.Shift : 0) |
-                         (eKeyArgs.Alt ? (int)InputFlag.Alt : 0) |
-                         (eKeyArgs.Control ? (int)InputFlag.Control : 0);
+                Flags |= (eKeyArgs.Shift ? (int) InputFlag.Shift : 0) |
+                         (eKeyArgs.Alt ? (int) InputFlag.Alt : 0) |
+                         (eKeyArgs.Control ? (int) InputFlag.Control : 0);
             }
         }
 
-        public InputConfig(Stream zStream) : base(zStream) { }
+        public InputConfig(Stream zStream) : base(zStream)
+        {
+        }
 
         public override string GetDescription()
         {

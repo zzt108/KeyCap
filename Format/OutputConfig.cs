@@ -26,6 +26,7 @@ using System;
 using System.IO;
 using System.Windows.Forms;
 using KeyCap.Support.UI;
+using Newtonsoft.Json;
 
 namespace KeyCap.Format
 {
@@ -94,6 +95,7 @@ namespace KeyCap.Format
         /// <param name="nFlags">The flags defining the input</param>
         /// <param name="byVirtualKey">The value of the input</param>
         /// <param name="nParameter"></param>
+        [JsonConstructor]
         public OutputConfig(int nFlags, byte byVirtualKey, int nParameter) : this(nFlags, byVirtualKey, nParameter, null) { }
 
         public OutputConfig(Stream zStream) : base(zStream) { }
