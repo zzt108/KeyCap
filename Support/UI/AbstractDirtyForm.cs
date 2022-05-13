@@ -26,52 +26,52 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Windows.Forms;
+using KeyCap.Support.IO;
 
 namespace KeyCap.Support.UI
 {
-	/// <summary>
-	/// Handles Form "dirty/clean" states in relation to file loading / saving. Acts as
-	/// an abstract class, but is not. (forms & abstraction break the IDE in MSVS2003)
-	/// Be sure to override SaveFormData and OpenFormData
-	/// </summary>
-	//public abstract class AbstractDirtyForm
-
-	public class AbstractDirtyForm : Form
-	{
+    /// <summary>
+    /// Handles Form "dirty/clean" states in relation to file loading / saving. Acts as
+    /// an abstract class, but is not. (forms & abstraction break the IDE in MSVS2003)
+    /// Be sure to override SaveFormData and OpenFormData
+    /// </summary>
+    //public abstract class AbstractDirtyForm
+    public class AbstractDirtyForm : Form
+    {
         private string m_sCurrentDirectory = string.Empty;
-		protected string SBaseTitle = string.Empty;
-		protected string SLoadedFile = string.Empty;
-		protected string SFileOpenFilter = string.Empty;
-		protected string SFileSaveFilter = string.Empty;
+        protected string SBaseTitle = string.Empty;
+        protected FileGroup zLoadedFile;
+        protected string SFileOpenFilter = string.Empty;
+        protected string SFileSaveFilter = string.Empty;
 
-	    public string LoadedFile
-	    {
-	        get { return SLoadedFile; }
-	    }
+        public FileGroup LoadedFile
+        {
+            get { return zLoadedFile; }
+        }
 
         protected bool Dirty { get; private set; }
 
-		/// <summary>
-		/// This method should have an override that performs the save of the data to the file.
-		/// </summary>
-		/// <param name="strFileName">The file to save the data to</param>
-		/// <returns>true on success, false otherwise</returns>
-		protected virtual bool SaveFormData(string strFileName)
-		{
-			MessageBox.Show(this, "DEV Error: Please override AbstractDirtyForm.SaveFormData");
-			return false;
-		}
+        /// <summary>
+        /// This method should have an override that performs the save of the data to the file.
+        /// </summary>
+        /// <param name="zFileGroup"></param>
+        /// <returns>true on success, false otherwise</returns>
+        protected virtual bool SaveFormData(FileGroup zFileGroup)
+        {
+            MessageBox.Show(this, "DEV Error: Please override AbstractDirtyForm.SaveFormData");
+            return false;
+        }
 
-		/// <summary>
-		/// This method should have an override that performs the load of the data from the file.
-		/// </summary>
-		/// <param name="sFileName">The file to load the data from</param>
-		/// <returns>true on success, false otherwise</returns>
-		protected virtual bool OpenFormData(string sFileName)
-		{
-			MessageBox.Show(this, "DEV Error: Please override AbstractDirtyForm.OpenFormData");
-			return false;
-		}
+        /// <summary>
+        /// This method should have an override that performs the load of the data from the file.
+        /// </summary>
+        /// <param name="zFileGroup"></param>
+        /// <returns>true on success, false otherwise</returns>
+        protected virtual bool OpenFormData(FileGroup zFileGroup)
+        {
+            MessageBox.Show(this, "DEV Error: Please override AbstractDirtyForm.OpenFormData");
+            return false;
+        }
 
         /// <summary>
         /// Gets the current directory associated with the form
@@ -84,97 +84,101 @@ namespace KeyCap.Support.UI
             return Environment.CurrentDirectory;
         }
 
-		/// <summary>
-		/// Marks this form as dirty (needing save)
-		/// </summary>
-		public void MarkDirty()
-		{
-			if(!Dirty)
-			{
-				if(!Text.EndsWith("*"))
-					Text += " *";
+        /// <summary>
+        /// Marks this form as dirty (needing save)
+        /// </summary>
+        public void MarkDirty()
+        {
+            if (!Dirty)
+            {
+                if (!Text.EndsWith("*"))
+                    Text += " *";
 
                 Dirty = true;
-			}
-		}
+            }
+        }
 
-		/// <summary>
-		/// Marks this form as clean (save not needed)
-		/// </summary>
-		public void MarkClean()
-		{
+        /// <summary>
+        /// Marks this form as clean (save not needed)
+        /// </summary>
+        public void MarkClean()
+        {
             if (Dirty)
-			{
-				Text = Text.Replace("*", "").Trim();
+            {
+                Text = Text.Replace("*", "").Trim();
                 Dirty = false;
-			}
-		}
+            }
+        }
 
         /// <summary>
         /// Initializes a simple new file
         /// </summary>
         protected void InitNew()
         {
-            SLoadedFile = string.Empty;
+            zLoadedFile = null;
             Text = SBaseTitle;
             MarkClean();
         }
 
-		/// <summary>
-		/// Initializes the Open process via the OpenFileDialog
-		/// </summary>
-		protected void InitOpen()
-		{
-		    var ofn = new OpenFileDialog
-		    {
-		        InitialDirectory = GetDialogDirectory(),
-                Filter = 0 == SFileOpenFilter.Length 
+        /// <summary>
+        /// Initializes the Open process via the OpenFileDialog
+        /// </summary>
+        protected void InitOpen()
+        {
+            // TODO Why start fails if config loaded from JSON?
+            var ofn = new OpenFileDialog
+            {
+                InitialDirectory = GetDialogDirectory(),
+                Filter = 0 == SFileOpenFilter.Length
                     ? "All files (*.*)|*.*"
                     : SFileOpenFilter
-		    };
-            if(DialogResult.OK == ofn.ShowDialog(this))
-			{
+            };
+            if (DialogResult.OK == ofn.ShowDialog(this))
+            {
+                FileGroup fg = new FileGroup(ofn.FileName);
                 var sPath = Path.GetDirectoryName(ofn.FileName);
-			    if (null != sPath)
-			    {
+                if (null != sPath)
+                {
                     if (Directory.Exists(sPath))
                     {
                         m_sCurrentDirectory = sPath;
-                        if (OpenFormData(ofn.FileName))
+                        if (OpenFormData(fg))
                         {
-                            SetLoadedFile(ofn.FileName);
+                            SetLoadedFile(fg);
                             return;
                         }
                     }
+                }
 
-			    }
-			    MessageBox.Show(this, $"Error opening [{ofn.FileName}] Wrong file type?", "File Open Error");
-			}
-		}
+                MessageBox.Show(this, $"Error opening [{ofn.FileName}] Wrong file type?", "File Open Error");
+            }
+        }
 
-		/// <summary>
-		/// Initializes the open process with the file specified.
-		/// </summary>
-		/// <param name="sFileName">The file to open the data from</param>
-		/// <returns>true on success, false otherwise</returns>
-		protected bool InitOpen(string sFileName)
-		{
-			if(OpenFormData(sFileName))
-			{
-                SetLoadedFile(sFileName);
-				return true;
-			}
-			return false;
-		}
+        /// <summary>
+        /// Initializes the open process with the file specified.
+        /// </summary>
+        /// <param name="sFileName">The file to open the data from</param>
+        /// <returns>true on success, false otherwise</returns>
+        protected bool InitOpen(string sFileName)
+        {
+            var fg = new FileGroup(sFileName);
+            if (OpenFormData(fg))
+            {
+                SetLoadedFile(fg);
+                return true;
+            }
+
+            return false;
+        }
 
         /// <summary>
         /// Sets the currently loaded file and marks the state as clean
         /// </summary>
         /// <param name="sFileName"></param>
-        protected void SetLoadedFile(string sFileName)
+        protected void SetLoadedFile(FileGroup fg)
         {
-            SLoadedFile = sFileName;
-            Text = $"{SBaseTitle} [{SLoadedFile}]";
+            zLoadedFile = fg;
+            Text = $"{SBaseTitle} [{zLoadedFile.FileName}]";
             MarkClean();
         }
 
@@ -182,18 +186,18 @@ namespace KeyCap.Support.UI
         /// Event to associate with the OnClose event of the form
         /// </summary>
         /// <param name="eArg"></param>
-		protected void SaveOnClose(CancelEventArgs eArg)
-		{
+        protected void SaveOnClose(CancelEventArgs eArg)
+        {
             SaveOnEvent(eArg, true);
-		}
+        }
 
         protected void SaveOnEvent(CancelEventArgs eArg, bool bAllowCancel)
         {
             if (Dirty)
             {
                 switch (MessageBox.Show(this, "Would you like to save any changes?",
-                    "Save", 
-                    (bAllowCancel ? MessageBoxButtons.YesNoCancel : MessageBoxButtons.YesNo), 
+                    "Save",
+                    (bAllowCancel ? MessageBoxButtons.YesNoCancel : MessageBoxButtons.YesNo),
                     MessageBoxIcon.Question))
                 {
                     case DialogResult.Yes:
@@ -213,10 +217,9 @@ namespace KeyCap.Support.UI
         /// Initializes the Save / Save As dialog
         /// </summary>
         /// <param name="bForceSaveAs"></param>
-		protected void InitSave(bool bForceSaveAs)
-		{
-
-            if (string.IsNullOrEmpty(SLoadedFile) || bForceSaveAs)
+        protected void InitSave(bool bForceSaveAs)
+        {
+            if (zLoadedFile is null || bForceSaveAs)
             {
                 var sfn = new SaveFileDialog
                 {
@@ -224,36 +227,37 @@ namespace KeyCap.Support.UI
                     OverwritePrompt = true
                 };
                 if (0 == SFileSaveFilter.Length)
-	                sfn.Filter = "All files (*.*)|*.*";
+                    sfn.Filter = "All files (*.*)|*.*";
                 else
-	                sfn.Filter = SFileSaveFilter;
+                    sfn.Filter = SFileSaveFilter;
 
                 if (DialogResult.OK == sfn.ShowDialog(this))
-			    {
-			        var sPath = Path.GetDirectoryName(sfn.FileName);
-			        if (null != sPath)
-			        {
-			            if (Directory.Exists(sPath))
-			            {
-			                m_sCurrentDirectory = sPath;
-                            SetLoadedFile(sfn.FileName);
+                {
+                    var sPath = Path.GetDirectoryName(sfn.FileName);
+                    if (null != sPath)
+                    {
+                        if (Directory.Exists(sPath))
+                        {
+                            m_sCurrentDirectory = sPath;
+                            SetLoadedFile(new FileGroup(sfn.FileName));
                         }
-			        }
-			    }
-			    else
-			    {
-			        return;
-			    }
-			}
-            if (!SaveFormData(SLoadedFile))
+                    }
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            if (!SaveFormData(zLoadedFile))
             {
-                MessageBox.Show(this, $"Error saving to file: {SLoadedFile}", "File Save Error",
+                MessageBox.Show(this, $"Error saving to file: {zLoadedFile.FileName}", "File Save Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else
             {
                 MarkClean();
             }
-		}
-	}
+        }
+    }
 }

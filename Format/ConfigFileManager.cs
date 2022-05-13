@@ -23,15 +23,13 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Windows.Forms;
+using KeyCap.Support.IO;
 using KeyCap.Support.UI;
 using KeyCap.Util;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 namespace KeyCap.Format
 {
@@ -63,9 +61,9 @@ namespace KeyCap.Format
         /// </summary>
         /// <param name="listRemapEntries">The entries to persist</param>
         /// <param name="sFileName">The name of the file to save to</param>
-        public static void SaveFile(List<RemapEntry> listRemapEntries, string sFileName)
+        public static void SaveFile(List<RemapEntry> listRemapEntries, FileGroup zFileGroup)
         {
-            using (var fileStream = new FileStream(sFileName, FileMode.Create, FileAccess.Write, FileShare.None))
+            using (var fileStream = new FileStream(zFileGroup.GetFilenameWithExtension(ValidExtension.KFG), FileMode.Create, FileAccess.Write, FileShare.None))
             {
                 StreamUtil.WriteIntToStream(fileStream, FileDataPrefix);
                 StreamUtil.WriteIntToStream(fileStream, DataFormatVersion);
@@ -82,14 +80,14 @@ namespace KeyCap.Format
         /// Saves the remap entries to a versioned JSON file
         /// </summary>
         /// <param name="listRemapEntries">The entries to persist</param>
-        /// <param name="strFileName">The name of the file to save to</param>
-        public static void SaveFileJson(List<RemapEntry> listRemapEntries, string strFileName)
+        /// <param name="zFileGroup">The name of the file to save to</param>
+        public static void SaveFileJson(List<RemapEntry> listRemapEntries, FileGroup zFileGroup)
         {
             // var serializer = new JsonSerializer();
             // serializer.Converters.Add(new JavaScriptDateTimeConverter());
             // serializer.NullValueHandling = NullValueHandling.Ignore;
 
-            using (var sw = new StreamWriter(strFileName))
+            using (var sw = new StreamWriter(zFileGroup.GetFilenameWithExtension(ValidExtension.JSON)))
             {
                 var json = JsonConvert.SerializeObject(new ExternalData(listRemapEntries), Formatting.Indented);
                 sw.Write(json);
@@ -99,22 +97,23 @@ namespace KeyCap.Format
         /// <summary>
         /// Loads the remap entries from the specified file
         /// </summary>
-        /// <param name="sFileName"></param>
+        /// <param name="zFileGroup"></param>
         /// <returns></returns>
-        public static List<RemapEntry> LoadFile(string sFileName)
+        public static List<RemapEntry> LoadFile(FileGroup zFileGroup)
         {
             var listConfigs = new List<RemapEntry>();
             try
             {
                 // zFileStream = new FileStream(sFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
                 FileStream zFileStream;
-                using (zFileStream = new FileStream(sFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+                var filenameWithExtension = zFileGroup.GetFilenameWithExtension(ValidExtension.KFG);
+                using (zFileStream = new FileStream(filenameWithExtension, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     var nPrefix = StreamUtil.ReadIntFromStream(zFileStream);
-                    CheckFilePrefix(sFileName, nPrefix);
+                    CheckFilePrefix(filenameWithExtension, nPrefix);
 
                     var nDataFormatVersion = StreamUtil.ReadIntFromStream(zFileStream);
-                    CheckFileVersion(sFileName, nDataFormatVersion);
+                    CheckFileVersion(filenameWithExtension, nDataFormatVersion);
 
                     while (zFileStream.Position < zFileStream.Length)
                     {
@@ -156,27 +155,27 @@ namespace KeyCap.Format
         /// <summary>
         /// Loads the remap entries from the specified file
         /// </summary>
-        /// <param name="sFileName"></param>
+        /// <param name="zFileGroup"></param>
         /// <returns></returns>
-        public static List<RemapEntry> LoadFileJson(string strFileName)
+        public static List<RemapEntry> LoadFileJson(FileGroup zFileGroup)
         {
-            using (var sr = new StreamReader(strFileName))
+            var filenameWithExtension = zFileGroup.GetFilenameWithExtension(ValidExtension.JSON);
+            using (var sr = new StreamReader(filenameWithExtension))
             {
                 var json = sr.ReadToEnd();
                 var data = JsonConvert.DeserializeObject<ExternalData>(json);
                 if (data != null)
                 {
-                    CheckFilePrefix(strFileName, data.FileDataPrefix);
+                    CheckFilePrefix(filenameWithExtension, data.FileDataPrefix);
 
-                    CheckFileVersion(strFileName, data.DataFormatVersion);
+                    CheckFileVersion(filenameWithExtension, data.DataFormatVersion);
                     return data.RemapEntries;
                 }
                 else
                 {
-                    throw new Exception($"{strFileName} import is not successfull");
+                    throw new Exception($"{zFileGroup} import is not successfull");
                 }
             }
-
         }
     }
 }

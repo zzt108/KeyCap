@@ -61,12 +61,7 @@ namespace KeyCap.Forms
             Stop
         }
 
-        public static class ValidExtension
-        {
-            public const string JSON = ".json";
-            public const string KFG = ".kfg";
-        }
-        
+       
         /// <summary>
         /// Constructs a new dialog
         /// </summary>
@@ -75,10 +70,9 @@ namespace KeyCap.Forms
         {
             InitializeComponent();
             SBaseTitle = $"{Application.ProductName} Configuration {Application.ProductVersion}";
-            SFileOpenFilter =
-                $"{Application.ProductName} Json files (*{ValidExtension.JSON})|*{ValidExtension.JSON}|{Application.ProductName} Config files (*{ValidExtension.KFG})|*{ValidExtension.KFG}|All files (*.*)|*.*";
-            SFileSaveFilter =
-                $"{Application.ProductName} Json files (*{ValidExtension.JSON})|*{ValidExtension.JSON}|{Application.ProductName} Config files (*{ValidExtension.KFG})|*{ValidExtension.KFG}|All files (*.*)|*.*";
+            FileGroup.SetFilterNames(Application.ProductName);
+            SFileOpenFilter = FileGroup.FileOpenFilter;
+            SFileSaveFilter = FileGroup.FileSaveFilter;
             Text = SBaseTitle;
             
             m_zInstanceState = new KeyCapInstanceState(args);
@@ -125,7 +119,7 @@ namespace KeyCap.Forms
             }
 
             // initialize capture from command line specified file
-            if (0 != SLoadedFile.Length && m_zInstanceState.AutoStart)
+            if (!(zLoadedFile is null) && m_zInstanceState.AutoStart)
             {
                 btnStart_Click(sender, new EventArgs());
                 new Thread(MinimizeThread) { Name = "MinimizeThread" }.Start();
@@ -273,28 +267,30 @@ namespace KeyCap.Forms
 
         #region AbstractDirtyForm overrides
 
-        protected override bool SaveFormData(string strFileName)
+        protected override bool SaveFormData(FileGroup zFileGroup)
         {
             var listConfigs = new List<RemapEntry>(listViewKeys.Items.Count);
             listConfigs.AddRange(from ListViewItem item in listViewKeys.Items select (RemapEntry) item.Tag);
-            if (strFileName.Contains(ValidExtension.JSON))
+            // var zfileName = new FileGroup(zFileName);
+            if (zFileGroup.Extension == ValidExtension.JSON)
             {
-                ConfigFileManager.SaveFileJson(listConfigs, strFileName);
+                ConfigFileManager.SaveFileJson(listConfigs, zFileGroup);
+                ConfigFileManager.SaveFile(listConfigs, zFileGroup);
             }
-            else if (strFileName.Contains(ValidExtension.KFG))
+            else if (zFileGroup.Extension == ValidExtension.KFG)
             {
-                ConfigFileManager.SaveFile(listConfigs, strFileName);
+                ConfigFileManager.SaveFile(listConfigs, zFileGroup);
             }
             else
             {
-                throw new Exception($"Invalid file type {strFileName}");
+                throw new Exception($"Invalid file type {zFileGroup}");
             }
             // on save the project list should be updated
-            UpdateProjectsList(strFileName);
+            UpdateProjectsList(zFileGroup);
             return true;
         }
 
-        protected override bool OpenFormData(string sFileName)
+        protected override bool OpenFormData(FileGroup zFileGroup)
         {
             txtKeyIn.Text = string.Empty;
             txtKeyOut.Text = string.Empty;
@@ -302,13 +298,13 @@ namespace KeyCap.Forms
             try
             {
                 List<RemapEntry> listConfigs = null;
-                if (sFileName.EndsWith(ValidExtension.KFG))
+                if (zFileGroup.Extension == ValidExtension.KFG)
                 {
-                    listConfigs = ConfigFileManager.LoadFile(sFileName);
+                    listConfigs = ConfigFileManager.LoadFile(zFileGroup);
                 }
-                else if (sFileName.EndsWith(ValidExtension.JSON))
+                else if (zFileGroup.Extension == ValidExtension.JSON)
                 {
-                    listConfigs = ConfigFileManager.LoadFileJson(sFileName);
+                    listConfigs = ConfigFileManager.LoadFileJson(zFileGroup);
                 }
 
                 Debug.Assert(listConfigs != null, nameof(listConfigs) + " != null");
@@ -323,7 +319,7 @@ namespace KeyCap.Forms
                         Tag = ioc
                     });
                 });
-                UpdateProjectsList(sFileName);
+                UpdateProjectsList(zFileGroup);
             }
             catch (Exception e)
             {
@@ -500,6 +496,7 @@ namespace KeyCap.Forms
 
         private void btnStart_Click(object sender, EventArgs e)
         {
+            //TODO Why start fails if config loaded from JSON?
             if (0 == listViewKeys.Items.Count)
             {
                 return; // no keys, no point!
@@ -511,11 +508,11 @@ namespace KeyCap.Forms
             }
             else if(btnStart.Text.Equals(ActionText.Start.ToString()))
             {
-                InitSave(false);
+                InitSave(bForceSaveAs: false);
                 if (!Dirty)
                 {
                     ConfigureControls(true);
-                    var eReturn = KeyCaptureLib.LoadFileAndCapture(SLoadedFile);
+                    var eReturn = KeyCaptureLib.LoadFileAndCapture(zLoadedFile.FileName);
                     switch (eReturn)
                     {
                         case CaptureMessage.HookCreationSuccess:
@@ -607,11 +604,11 @@ namespace KeyCap.Forms
         /// <summary>
         /// Updates the recent loaded file list
         /// </summary>
-        /// <param name="sFileName">The most recently loaded file</param>
-        private void UpdateProjectsList(string sFileName)
+        /// <param name="zFileGroup">The most recently loaded file</param>
+        private void UpdateProjectsList(FileGroup zFileGroup)
         {
-            m_listRecentFiles.Remove(sFileName);
-            m_listRecentFiles.Insert(0, sFileName);
+            m_listRecentFiles.Remove(zFileGroup.FileName);
+            m_listRecentFiles.Insert(0, zFileGroup.FileName);
             while (KeyCapConstants.MaxRecentProjects < m_listRecentFiles.Count)
             {
                 m_listRecentFiles.RemoveAt(KeyCapConstants.MaxRecentProjects);
