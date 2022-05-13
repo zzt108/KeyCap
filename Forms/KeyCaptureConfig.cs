@@ -512,7 +512,7 @@ namespace KeyCap.Forms
                 if (!Dirty)
                 {
                     ConfigureControls(true);
-                    var eReturn = KeyCaptureLib.LoadFileAndCapture(zLoadedFile.FileName);
+                    var eReturn = KeyCaptureLib.LoadFileAndCapture(zLoadedFile.GetFilenameWithExtension(ValidExtension.KFG));
                     switch (eReturn)
                     {
                         case CaptureMessage.HookCreationSuccess:

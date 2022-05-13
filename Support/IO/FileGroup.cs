@@ -26,15 +26,15 @@ namespace KeyCap.Support.IO
         public static void SetFilterNames(string sProductName)
         {
             FileOpenFilter =
-                $"{sProductName} Json files (*.{ValidExtension.JSON})|*.{ValidExtension.JSON}|{sProductName} Config files (*.{ValidExtension.KFG})|*.{ValidExtension.KFG}|All files (*.*)|*.*";
+                $"{sProductName} Json files (*{ValidExtension.JSON})|*{ValidExtension.JSON}|{sProductName} Config files (*{ValidExtension.KFG})|*{ValidExtension.KFG}|All files (*.*)|*.*";
             FileSaveFilter =
-                $"{sProductName} Json files (*.{ValidExtension.JSON})|*.{ValidExtension.JSON}|{sProductName} Config files (*.{ValidExtension.KFG})|*.{ValidExtension.KFG}|All files (*.*)|*.*";
+                $"{sProductName} Json files (*{ValidExtension.JSON})|*{ValidExtension.JSON}|{sProductName} Config files (*{ValidExtension.KFG})|*{ValidExtension.KFG}|All files (*.*)|*.*";
         }
     }
 
     public static class ValidExtension
     {
-        public const string JSON = "json";
-        public const string KFG = "kfg";
+        public const string JSON = ".json";
+        public const string KFG = ".kfg";
     }
 }
