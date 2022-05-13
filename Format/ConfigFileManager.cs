@@ -33,6 +33,8 @@ using Newtonsoft.Json;
 
 namespace KeyCap.Format
 {
+    // TODO Open Logitech G13 xml export file and convert it to standard keyboard
+    // TODO Open keyboard config based on process change
     public class ConfigFileManager
     {
         private class ExternalData

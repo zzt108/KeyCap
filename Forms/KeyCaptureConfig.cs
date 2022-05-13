@@ -496,7 +496,6 @@ namespace KeyCap.Forms
 
         private void btnStart_Click(object sender, EventArgs e)
         {
-            //TODO Why start fails if config loaded from JSON?
             if (0 == listViewKeys.Items.Count)
             {
                 return; // no keys, no point!

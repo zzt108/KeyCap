@@ -125,7 +125,6 @@ namespace KeyCap.Support.UI
         /// </summary>
         protected void InitOpen()
         {
-            // TODO Why start fails if config loaded from JSON?
             var ofn = new OpenFileDialog
             {
                 InitialDirectory = GetDialogDirectory(),
