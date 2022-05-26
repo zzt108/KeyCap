@@ -63,6 +63,7 @@
     <Compile Include="Format\RemapEntry.cs" />
     <Compile Include="Settings\KeyCapInstanceState.cs" />
     <Compile Include="Support\IO\FileGroup.cs" />
+    <Compile Include="Support\UI\ListViewColumnSorter.cs" />
     <Compile Include="Support\UI\QueryPanel.cs" />
     <Compile Include="Support\UI\QueryPanelDialog.cs" />
     <Compile Include="Util\BitUtil.cs" />

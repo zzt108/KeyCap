@@ -51,7 +51,8 @@ namespace KeyCap.Forms
 
         private FormWindowState m_ePrevWindowState = FormWindowState.Normal;
         private bool m_bShutdownApplication;
-        
+        private ListViewColumnSorter zColumnSorter;
+
         /// <summary>
         /// Text to display on the button to start/stop capturing
         /// </summary>
@@ -61,7 +62,7 @@ namespace KeyCap.Forms
             Stop
         }
 
-       
+
         /// <summary>
         /// Constructs a new dialog
         /// </summary>
@@ -69,12 +70,17 @@ namespace KeyCap.Forms
         public KeyCaptureConfig(IReadOnlyList<string> args)
         {
             InitializeComponent();
+            // Create an instance of a ListView column sorter and assign it
+            // to the ListView control.
+            zColumnSorter = new ListViewColumnSorter();
+            this.listViewKeys.ListViewItemSorter = zColumnSorter;
+
             SBaseTitle = $"{Application.ProductName} Configuration {Application.ProductVersion}";
             FileGroup.SetFilterNames(Application.ProductName);
             SFileOpenFilter = FileGroup.FileOpenFilter;
             SFileSaveFilter = FileGroup.FileSaveFilter;
             Text = SBaseTitle;
-            
+
             m_zInstanceState = new KeyCapInstanceState(args);
 
             // load the command line specified file
@@ -102,6 +108,7 @@ namespace KeyCap.Forms
             {
                 comboBoxOutMouse.Items.Add(sName);
             }
+
             comboBoxOutMouse.SelectedIndex = 0;
 
             // set the notification icon accordingly
@@ -109,7 +116,8 @@ namespace KeyCap.Forms
             Icon = notifyIcon.Icon;
 
             // populate the previously loaded configurations
-            var arrayFiles = m_zIniManager.GetValue(IniSettings.PreviousFiles).Split(new[] { KeyCapConstants.CharFileSplit }, StringSplitOptions.RemoveEmptyEntries);
+            var arrayFiles = m_zIniManager.GetValue(IniSettings.PreviousFiles)
+                .Split(new[] {KeyCapConstants.CharFileSplit}, StringSplitOptions.RemoveEmptyEntries);
             if (0 < arrayFiles.Length)
             {
                 foreach (var sFile in arrayFiles)
@@ -122,7 +130,7 @@ namespace KeyCap.Forms
             if (!(zLoadedFile is null) && m_zInstanceState.AutoStart)
             {
                 btnStart_Click(sender, new EventArgs());
-                new Thread(MinimizeThread) { Name = "MinimizeThread" }.Start();
+                new Thread(MinimizeThread) {Name = "MinimizeThread"}.Start();
             }
         }
 
@@ -134,6 +142,7 @@ namespace KeyCap.Forms
             {
                 return;
             }
+
             listViewKeys.Items.Clear();
             InitNew();
         }
@@ -145,6 +154,7 @@ namespace KeyCap.Forms
             {
                 WindowState = m_ePrevWindowState;
             }
+
             KeyCaptureLib.Shutdown();
             m_zIniManager.SetValue(Name, IniManager.GetFormSettings(this));
             Close();
@@ -160,13 +170,16 @@ namespace KeyCap.Forms
             {
                 return;
             }
+
             var sMacro = zQuery.GetString(macroStringKey);
             if (string.IsNullOrWhiteSpace(sMacro))
             {
-                MessageBox.Show(this, "Please specify a string of output characters.", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(this, "Please specify a string of output characters.", "Error!", MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
                 return;
             }
-            var zCurrentInputConfig = (InputConfig)txtKeyIn.Tag;
+
+            var zCurrentInputConfig = (InputConfig) txtKeyIn.Tag;
             if (null == zCurrentInputConfig)
             {
                 ShowKeysNotDefinedError();
@@ -180,6 +193,7 @@ namespace KeyCap.Forms
                 {
                     zRemapEntry.AppendOutputConfig(CreateOutputConfigFromCharacter(sMacro[nIdx]));
                 }
+
                 if (!IsInputAlreadyDefined(zRemapEntry))
                 {
                     AddRemapEntryToListView(zRemapEntry, true);
@@ -187,7 +201,8 @@ namespace KeyCap.Forms
             }
             catch (Exception ex)
             {
-                MessageBox.Show(this, $"Unfortunately you have specified an unsupported character (at this time).{ex}", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(this, $"Unfortunately you have specified an unsupported character (at this time).{ex}",
+                    "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -202,6 +217,7 @@ namespace KeyCap.Forms
                     m_bShutdownApplication = false;
                     return;
                 }
+
                 FlushIniSettings();
             }
             else
@@ -235,13 +251,13 @@ namespace KeyCap.Forms
         private void txtKeyIn_KeyDown(object sender, KeyEventArgs e)
         {
             //            Console.Out.WriteLine("Key Input: {0} 0x{1}".FormatString(e.KeyCode, e.KeyCode.ToString("x")));
-            UpdateTextBox((TextBox)sender, e, new InputConfig((byte)e.KeyCode, e));
+            UpdateTextBox((TextBox) sender, e, new InputConfig((byte) e.KeyCode, e));
         }
 
         private void txtKeyOut_KeyDown(object sender, KeyEventArgs e)
         {
             //            Console.Out.WriteLine("Key Input: {0} 0x{1}".FormatString(e.KeyCode, e.KeyCode.ToString("x")));
-            UpdateTextBox((TextBox)sender, e, new OutputConfig(0, (byte)e.KeyCode, 0, e));
+            UpdateTextBox((TextBox) sender, e, new OutputConfig(0, (byte) e.KeyCode, 0, e));
             // delay is toggled off if a key is specified
             checkOutputDelay.Checked = false;
         }
@@ -255,15 +271,15 @@ namespace KeyCap.Forms
 
         private void txtKey_Enter(object sender, EventArgs e)
         {
-            ((TextBox)sender).BackColor = Color.LightGoldenrodYellow;
+            ((TextBox) sender).BackColor = Color.LightGoldenrodYellow;
         }
 
         private void txtKey_Leave(object sender, EventArgs e)
         {
-            ((TextBox)sender).BackColor = SystemColors.Control;
+            ((TextBox) sender).BackColor = SystemColors.Control;
         }
 
-    #endregion
+        #endregion
 
         #region AbstractDirtyForm overrides
 
@@ -285,6 +301,7 @@ namespace KeyCap.Forms
             {
                 throw new Exception($"Invalid file type {zFileGroup}");
             }
+
             // on save the project list should be updated
             UpdateProjectsList(zFileGroup);
             return true;
@@ -325,10 +342,11 @@ namespace KeyCap.Forms
             {
                 MessageBox.Show(e.Message);
             }
+
             return true;
         }
 
-    #endregion
+        #endregion
 
         #region Menu Events
 
@@ -365,11 +383,11 @@ namespace KeyCap.Forms
 
         private void recentConfiguration_Click(object sender, EventArgs e)
         {
-            var zItem = (ToolStripItem)sender;
+            var zItem = (ToolStripItem) sender;
             InitOpen(zItem.Text);
         }
 
-    #endregion
+        #endregion
 
         #region Control Events
 
@@ -387,7 +405,6 @@ namespace KeyCap.Forms
 
         private void comboBoxMouseOut_SelectedIndexChanged(object sender, EventArgs e)
         {
-
             if (comboBoxOutMouse.SelectedIndex == 0)
             {
                 txtKeyOut.Text = string.Empty;
@@ -396,8 +413,8 @@ namespace KeyCap.Forms
             else
             {
                 var zOutputConfig = new OutputConfig(
-                    (int)OutputConfig.OutputFlag.MouseOut,
-                    (byte)(OutputConfig.MouseButton)comboBoxOutMouse.SelectedItem);
+                    (int) OutputConfig.OutputFlag.MouseOut,
+                    (byte) (OutputConfig.MouseButton) comboBoxOutMouse.SelectedItem);
                 txtKeyOut.Text = zOutputConfig.GetDescription();
                 txtKeyOut.Tag = zOutputConfig;
             }
@@ -418,6 +435,7 @@ namespace KeyCap.Forms
             {
                 nFlag = (int) OutputConfig.OutputFlag.Delay;
             }
+
             // TODO: support other types that use the param this way...
             if (nFlag == 0)
             {
@@ -470,7 +488,7 @@ namespace KeyCap.Forms
             }
 
             var zItem = listViewKeys.SelectedItems[0];
-            var zRemapEntry = (RemapEntry)zItem.Tag;
+            var zRemapEntry = (RemapEntry) zItem.Tag;
             OutputConfig zOutputConfig = null;
             if (!RetrieveAppendConfigs(ref zOutputConfig, zRemapEntry)) return;
 
@@ -491,6 +509,7 @@ namespace KeyCap.Forms
             {
                 listViewKeys.Items.Remove(zItem);
             }
+
             MarkDirty();
         }
 
@@ -500,18 +519,20 @@ namespace KeyCap.Forms
             {
                 return; // no keys, no point!
             }
-            if(btnStart.Text.Equals(ActionText.Stop.ToString()))
+
+            if (btnStart.Text.Equals(ActionText.Stop.ToString()))
             {
                 KeyCaptureLib.Shutdown();
                 ConfigureControls(false);
             }
-            else if(btnStart.Text.Equals(ActionText.Start.ToString()))
+            else if (btnStart.Text.Equals(ActionText.Start.ToString()))
             {
                 InitSave(bForceSaveAs: false);
                 if (!Dirty)
                 {
                     ConfigureControls(true);
-                    var eReturn = KeyCaptureLib.LoadFileAndCapture(zLoadedFile.GetFilenameWithExtension(ValidExtension.KFG));
+                    var eReturn =
+                        KeyCaptureLib.LoadFileAndCapture(zLoadedFile.GetFilenameWithExtension(ValidExtension.KFG));
                     switch (eReturn)
                     {
                         case CaptureMessage.HookCreationSuccess:
@@ -545,31 +566,31 @@ namespace KeyCap.Forms
             checkOutputControl.Enabled = !checkOutputToggle.Checked;
             if (checkOutputToggle.Checked)
             {
-                checkOutputAlt.Checked = 
-                checkOutputShift.Checked = 
-                checkOutputControl.Checked =
-                checkOutputRepeat.Checked =
-                checkOutputDelay.Checked =
-                checkOutputNothing.Checked = false;
+                checkOutputAlt.Checked =
+                    checkOutputShift.Checked =
+                        checkOutputControl.Checked =
+                            checkOutputRepeat.Checked =
+                                checkOutputDelay.Checked =
+                                    checkOutputNothing.Checked = false;
             }
         }
 
         private void checkOutputDoNothing_CheckedChanged(object sender, EventArgs e)
         {
-            comboBoxOutMouse.Enabled = 
-            checkOutputAlt.Enabled =
-            checkOutputShift.Enabled = 
-            checkOutputControl.Enabled = 
-            checkOutputUp.Enabled = 
-            checkOutputDown.Enabled = 
-            checkOutputToggle.Enabled = 
-            checkOutputDelay.Enabled =
-            checkOutputRepeat.Enabled =
-            checkOutputCancel.Enabled =
-                !checkOutputNothing.Checked;
+            comboBoxOutMouse.Enabled =
+                checkOutputAlt.Enabled =
+                    checkOutputShift.Enabled =
+                        checkOutputControl.Enabled =
+                            checkOutputUp.Enabled =
+                                checkOutputDown.Enabled =
+                                    checkOutputToggle.Enabled =
+                                        checkOutputDelay.Enabled =
+                                            checkOutputRepeat.Enabled =
+                                                checkOutputCancel.Enabled =
+                                                    !checkOutputNothing.Checked;
             if (checkOutputNothing.Checked)
             {
-                var zOutputConfig = new OutputConfig((int)OutputConfig.OutputFlag.DoNothing, 0);
+                var zOutputConfig = new OutputConfig((int) OutputConfig.OutputFlag.DoNothing, 0);
                 txtKeyOut.Text = zOutputConfig.GetDescription();
                 txtKeyOut.Tag = zOutputConfig;
             }
@@ -578,19 +599,19 @@ namespace KeyCap.Forms
         private void checkOutputCancel_CheckedChanged(object sender, EventArgs e)
         {
             comboBoxOutMouse.Enabled =
-            checkOutputAlt.Enabled =
-            checkOutputShift.Enabled =
-            checkOutputControl.Enabled =
-            checkOutputUp.Enabled =
-            checkOutputDown.Enabled =
-            checkOutputToggle.Enabled =
-            checkOutputDelay.Enabled =
-            checkOutputRepeat.Enabled =
-            checkOutputNothing.Enabled = 
-                !checkOutputCancel.Checked;
+                checkOutputAlt.Enabled =
+                    checkOutputShift.Enabled =
+                        checkOutputControl.Enabled =
+                            checkOutputUp.Enabled =
+                                checkOutputDown.Enabled =
+                                    checkOutputToggle.Enabled =
+                                        checkOutputDelay.Enabled =
+                                            checkOutputRepeat.Enabled =
+                                                checkOutputNothing.Enabled =
+                                                    !checkOutputCancel.Checked;
             if (checkOutputCancel.Checked)
             {
-                var zOutputConfig = new OutputConfig((int)OutputConfig.OutputFlag.CancelActiveOutputs, 0);
+                var zOutputConfig = new OutputConfig((int) OutputConfig.OutputFlag.CancelActiveOutputs, 0);
                 txtKeyOut.Text = zOutputConfig.GetDescription();
                 txtKeyOut.Tag = zOutputConfig;
             }
@@ -636,7 +657,7 @@ namespace KeyCap.Forms
 
         private OutputConfig UpdateOutputFlags(OutputConfig zOutputConfig)
         {
-            if (zOutputConfig.IsFlaggedAs(OutputConfig.OutputFlag.DoNothing) 
+            if (zOutputConfig.IsFlaggedAs(OutputConfig.OutputFlag.DoNothing)
                 || zOutputConfig.IsFlaggedAs(OutputConfig.OutputFlag.CancelActiveOutputs))
             {
                 return zOutputConfig;
@@ -656,8 +677,10 @@ namespace KeyCap.Forms
             nFlags = BitUtil.UpdateFlag(nFlags, bShift, OutputConfig.OutputFlag.Shift);
             nFlags = BitUtil.UpdateFlag(nFlags, bControl, OutputConfig.OutputFlag.Control);
             nFlags = BitUtil.UpdateFlag(nFlags, bAlt, OutputConfig.OutputFlag.Alt);
-            nFlags = BitUtil.UpdateFlag(nFlags, zOutputConfig.IsFlaggedAs(OutputConfig.OutputFlag.MouseOut), OutputConfig.OutputFlag.MouseOut);
-            nFlags = BitUtil.UpdateFlag(nFlags, zOutputConfig.IsFlaggedAs(OutputConfig.OutputFlag.Delay), OutputConfig.OutputFlag.Delay);
+            nFlags = BitUtil.UpdateFlag(nFlags, zOutputConfig.IsFlaggedAs(OutputConfig.OutputFlag.MouseOut),
+                OutputConfig.OutputFlag.MouseOut);
+            nFlags = BitUtil.UpdateFlag(nFlags, zOutputConfig.IsFlaggedAs(OutputConfig.OutputFlag.Delay),
+                OutputConfig.OutputFlag.Delay);
 
             nFlags = BitUtil.UpdateFlag(nFlags, bToggle, OutputConfig.OutputFlag.Toggle);
             nFlags = BitUtil.UpdateFlag(nFlags, bRepeat, OutputConfig.OutputFlag.Repeat);
@@ -667,7 +690,7 @@ namespace KeyCap.Forms
 
             if (bRepeat)
             {
-                zOutputConfig.Parameter = (int)numericUpDownOutputParameter.Value;
+                zOutputConfig.Parameter = (int) numericUpDownOutputParameter.Value;
             }
 
             return zOutputConfig;
@@ -683,7 +706,7 @@ namespace KeyCap.Forms
             panelKeySetup.Enabled = !bCapturing;
             panelKeySetupControls.Enabled = !bCapturing;
             btnStart.Text = bCapturing ? ActionText.Stop.ToString() : ActionText.Start.ToString();
-            notifyIcon.Icon = bCapturing? Resources.KeyCapActive : Resources.KeyCapIdle;
+            notifyIcon.Icon = bCapturing ? Resources.KeyCapActive : Resources.KeyCapIdle;
             Icon = notifyIcon.Icon;
         }
 
@@ -712,17 +735,20 @@ namespace KeyCap.Forms
                 dictionaryFilenames.Add(sLowerFile, null);
                 zBuilder.Append(sFile + KeyCapConstants.CharFileSplit);
             }
+
             m_zIniManager.SetValue(IniSettings.PreviousFiles, zBuilder.ToString());
             m_zIniManager.FlushIniSettings();
         }
 
-        private bool RetrieveAddConfigs(ref InputConfig zInputConfig, ref OutputConfig zOutputConfig, ref RemapEntry zRemapEntry)
+        private bool RetrieveAddConfigs(ref InputConfig zInputConfig, ref OutputConfig zOutputConfig,
+            ref RemapEntry zRemapEntry)
         {
-            var zCurrentInputConfig = (InputConfig)txtKeyIn.Tag;
-            var zCurrentOutputConfig = (OutputConfig)txtKeyOut.Tag;
+            var zCurrentInputConfig = (InputConfig) txtKeyIn.Tag;
+            var zCurrentOutputConfig = (OutputConfig) txtKeyOut.Tag;
             if (null == zCurrentInputConfig || null == zCurrentOutputConfig)
             {
-                MessageBox.Show(this, "Please specify both an input and output key.", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(this, "Please specify both an input and output key.", "Error!", MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
                 return false;
             }
 
@@ -746,13 +772,14 @@ namespace KeyCap.Forms
             // verify this is not already defined
             foreach (ListViewItem zListItem in listViewKeys.Items)
             {
-                var zKeyOldDef = (RemapEntry)zListItem.Tag;
+                var zKeyOldDef = (RemapEntry) zListItem.Tag;
                 if (zNewRemapEntry.GetHashCode() != zKeyOldDef.GetHashCode())
                 {
                     continue;
                 }
 
-                MessageBox.Show(this, "Duplicate inputs are not allowed!", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(this, "Duplicate inputs are not allowed!", "Error!", MessageBoxButtons.OK,
+                    MessageBoxIcon.Exclamation);
                 return true;
             }
 
@@ -761,16 +788,19 @@ namespace KeyCap.Forms
 
         private bool RetrieveAppendConfigs(ref OutputConfig zOutputConfig, RemapEntry zRemapEntry)
         {
-            var zCurrentOutputConfig = (OutputConfig)txtKeyOut.Tag;
+            var zCurrentOutputConfig = (OutputConfig) txtKeyOut.Tag;
             if (null == zCurrentOutputConfig)
             {
-                MessageBox.Show(this, "Please specify an output key.", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(this, "Please specify an output key.", "Error!", MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
                 return false;
             }
 
             if (zRemapEntry.OutputConfigCount == KeyCapConstants.MaxOutputs)
             {
-                MessageBox.Show(this, "Failed to append item. The maximum number of outputs allowed is {0}.".FormatString(KeyCapConstants.MaxOutputs),
+                MessageBox.Show(this,
+                    "Failed to append item. The maximum number of outputs allowed is {0}.".FormatString(KeyCapConstants
+                        .MaxOutputs),
                     "Append Error!",
                     MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 return false;
@@ -797,8 +827,8 @@ namespace KeyCap.Forms
         {
             var bShift = false;
             var byteKey = GetKeysByte(cInput, ref bShift);
-            var nFlags = (bShift ? (int)OutputConfig.OutputFlag.Shift : 0) |
-                (int)OutputConfig.OutputFlag.Down | (int)OutputConfig.OutputFlag.Up;
+            var nFlags = (bShift ? (int) OutputConfig.OutputFlag.Shift : 0) |
+                         (int) OutputConfig.OutputFlag.Down | (int) OutputConfig.OutputFlag.Up;
             return new OutputConfig(nFlags, byteKey);
         }
 
@@ -807,7 +837,7 @@ namespace KeyCap.Forms
             bShift = char.IsUpper(cInput);
             try
             {
-                return (byte)(Keys)Enum.Parse(typeof(Keys), cInput.ToString(), true);
+                return (byte) (Keys) Enum.Parse(typeof(Keys), cInput.ToString(), true);
             }
             catch (Exception)
             {
@@ -818,64 +848,64 @@ namespace KeyCap.Forms
             switch (cInput)
             {
                 case ' ':
-                    return (byte)Keys.Space;
+                    return (byte) Keys.Space;
                 case '!':
                     bShift = true;
-                    return (byte)Keys.D1;
+                    return (byte) Keys.D1;
                 case '@':
                     bShift = true;
-                    return (byte)Keys.D2;
+                    return (byte) Keys.D2;
                 case '#':
                     bShift = true;
-                    return (byte)Keys.D3;
+                    return (byte) Keys.D3;
                 case '$':
                     bShift = true;
-                    return (byte)Keys.D4;
+                    return (byte) Keys.D4;
                 case '%':
                     bShift = true;
-                    return (byte)Keys.D5;
+                    return (byte) Keys.D5;
                 case '^':
                     bShift = true;
-                    return (byte)Keys.D6;
+                    return (byte) Keys.D6;
                 case '&':
                     bShift = true;
-                    return (byte)Keys.D7;
+                    return (byte) Keys.D7;
                 case '*':
                     bShift = true;
-                    return (byte)Keys.D8;
+                    return (byte) Keys.D8;
                 case '(':
                     bShift = true;
-                    return (byte)Keys.D9;
+                    return (byte) Keys.D9;
                 case ')':
                     bShift = true;
-                    return (byte)Keys.D0;
+                    return (byte) Keys.D0;
                 case '~':
                     bShift = true;
-                    return (byte)Keys.Oemtilde;
+                    return (byte) Keys.Oemtilde;
                 case '{':
                     bShift = true;
-                    return (byte)Keys.OemOpenBrackets;
+                    return (byte) Keys.OemOpenBrackets;
                 case '}':
                     bShift = true;
-                    return (byte)Keys.Oem6;
+                    return (byte) Keys.Oem6;
                 case '|':
                     bShift = true;
-                    return (byte)Keys.Oem5;
+                    return (byte) Keys.Oem5;
                 case ':':
                     bShift = true;
-                    return (byte)Keys.Oem1;
+                    return (byte) Keys.Oem1;
                 case '"':
                     bShift = true;
-                    return (byte)Keys.Oem7;
+                    return (byte) Keys.Oem7;
                 case '<':
                     bShift = true;
-                    return (byte)Keys.Oemcomma;
+                    return (byte) Keys.Oemcomma;
                 case '>':
                     bShift = true;
-                    return (byte)Keys.OemPeriod;
+                    return (byte) Keys.OemPeriod;
                 case '?':
                     bShift = true;
-                    return (byte)Keys.OemQuestion;
+                    return (byte) Keys.OemQuestion;
             }
 
             throw new Exception($"Unsupported character: {cInput}");
@@ -883,11 +913,35 @@ namespace KeyCap.Forms
 
         private void ShowKeysNotDefinedError()
         {
-            MessageBox.Show(this, "Please specify both an input and output key.", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(this, "Please specify both an input and output key.", "Error!", MessageBoxButtons.OK,
+                MessageBoxIcon.Error);
         }
-
 
         #endregion
 
+        private void listViewKeys_ColumnClick(object sender, ColumnClickEventArgs e)
+        {
+// Determine if clicked column is already the column that is being sorted.
+            if (e.Column == zColumnSorter.SortColumn)
+            {
+                // Reverse the current sort direction for this column.
+                if (zColumnSorter.Order == SortOrder.Ascending)
+                {
+                    zColumnSorter.Order = SortOrder.Descending;
+                }
+                else
+                {
+                    zColumnSorter.Order = SortOrder.Ascending;
+                }
+            }
+            else
+            {
+                // Set the column number that is to be sorted; default to ascending.
+                zColumnSorter.SortColumn = e.Column;
+                zColumnSorter.Order = SortOrder.Ascending;
+            }
+
+// Perform the sort with these new sort options.
+            this.listViewKeys.Sort();        }
     }
 }
