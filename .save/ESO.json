@@ -1,0 +1,48 @@
+{
+  "FileDataPrefix": 235708416,
+  "DataFormatVersion": 1,
+  "RemapEntries": [
+    {
+      "InputConfig": {
+        "Flags": 0,
+        "VirtualKey": 112,
+        "Parameter": 0
+      },
+      "OutputConfigs": [
+        {
+          "Flags": 384,
+          "VirtualKey": 77,
+          "Parameter": 0
+        }
+      ]
+    },
+    {
+      "InputConfig": {
+        "Flags": 0,
+        "VirtualKey": 114,
+        "Parameter": 0
+      },
+      "OutputConfigs": [
+        {
+          "Flags": 384,
+          "VirtualKey": 74,
+          "Parameter": 0
+        }
+      ]
+    },
+    {
+      "InputConfig": {
+        "Flags": 0,
+        "VirtualKey": 113,
+        "Parameter": 0
+      },
+      "OutputConfigs": [
+        {
+          "Flags": 384,
+          "VirtualKey": 73,
+          "Parameter": 0
+        }
+      ]
+    }
+  ]
+}
